@@ -9,6 +9,11 @@ let routes = [
     path: '/player',
     component: (resolve) => require(['./components/Player.vue'], resolve)
   },
+  {
+    name: 'styleguide',
+    path: '/styleguide',
+    component: (resolve) => require(['./components/Styleguide.vue'], resolve)
+  },
   // {
   //   name: '404',
   //   path: '/404',
