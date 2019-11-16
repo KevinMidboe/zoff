@@ -33,9 +33,8 @@ const webpackConfig = merge(commonConfig(true), {
     compress: true,
     historyApiFallback: true,
     hot: true,
-    open: true,
     overlay: true,
-    port: 8000,
+    port: 8080,
     stats: {
       normal: true
     }
