@@ -54,6 +54,7 @@
   },
   "homepage": "https://github.com/zoff-music/zoff#readme",
   "dependencies": {
+    "@babel/polyfill": "~7.2",
     "bad-words": "^1.6.5",
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.18.3",
@@ -66,6 +67,7 @@
     "express-handlebars": "^3.0.2",
     "express-recaptcha": "^3.0.1",
     "express-session": "^1.15.6",
+    "extract-text-webpack-plugin": "^3.0.2",
     "farmhash": "^3.0.0",
     "feature-policy": "^0.2.0",
     "gulp-clean-css": "^4.2.0",
@@ -88,9 +90,8 @@
     "socket.io-redis": "^5.2.0",
     "sticky-session": "^1.1.2",
     "uniqid": "5.0.3",
-    "@babel/polyfill": "~7.2",
-    "extract-text-webpack-plugin": "^3.0.2",
     "vue": "~2.6",
-    "vue-router": "~3.0"
+    "vue-router": "~3.0",
+    "vuex": "^3.1.2"
   }
 }

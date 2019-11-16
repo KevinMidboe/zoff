@@ -1,11 +1,11 @@
 <template>
   <div class="context-menu-container" :style="'top:' + mouseY + 'px;left:' + mouseX + 'px;'">
     <ul>
-      <li>Copy link</li>
-      <li>Find similar</li>
-      <li>Added by {{ addedBy }}</li>
+      <li @click="copyLink">Copy link</li>
+      <li @click="findSimilar">Find similar</li>
+      <li class="addedBy">Added by {{ addedBy }}</li>
       <hr />
-      <li>Delete</li>
+      <li @click="deleteSong" :disabled="loggedIn">Delete</li>
     </ul>
     <div class="context-menu-background" @mouseout="closeSelf" @click="closeSelf"></div>
   </div>
@@ -35,6 +35,11 @@ export default {
       type: Number
     }
   },
+  computed: {
+    loggedIn: function() {
+        return false;
+    }  
+  },
   methods: {
     closeSelf: function(e) {
       if (e.toElement == null || e.toElement.nodeName == null) {
@@ -44,6 +49,15 @@ export default {
         return;
       }
       this.$emit("closeContextMenu");
+    },
+    copyLink: function() {
+      console.log("copy link of", this.id);
+    },
+    findSimilar: function() {
+      console.log("find similar of", this.id);
+    },
+    deleteSong: function() {
+      console.log("delete song of", this.id);
     }
   }
 };
@@ -81,8 +95,12 @@ export default {
       cursor: pointer;
       padding: 5px 15px;
 
-      &:hover {
+      &:hover:not(.addedBy) {
         background-color: #ffffff15;
+      }
+
+      &.addedBy {
+          cursor: initial;
       }
     }
 

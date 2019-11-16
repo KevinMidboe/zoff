@@ -1,6 +1,6 @@
 <template>
   <div class="playlist-conatiner">
-    <div class="song-container" v-for="(song, i) in paginatedList" :key="i">
+    <div class="playlist-element" v-for="(song, i) in paginatedList" :key="i">
       <Song
         class="song"
         :title="song.title"
@@ -9,9 +9,10 @@
         :addedBy="song.added_by"
         :id="song.id"
         :type="song.type"
+        :duration="song.duration"
         @contextmenu="moreInfo"
       />
-      <div class="song-context-button" @click="moreInfo($event, song.id)">more</div>
+      <div class="song-context-button" @click="moreInfo($event, song.id)">. . .</div>
     </div>
     <div class="pagination-buttons">
       <button @click="firstPage" :disabled="disabledPrev" class="first"><</button>
@@ -59,15 +60,19 @@ export default {
     }
   },
   async beforeMount() {
-    const request = await fetch("https://zoff.me/api/list/summér", {
-      method: "POST"
-    });
-    const playlist = await request.json();
-    if (this.playlist.error == true) {
-      console.error(this.playlist.error);
-      return;
+    try {
+      const request = await fetch("https://zoff.me/api/list/summér", {
+        method: "POST"
+      });
+      const playlist = await request.json();
+      if (this.playlist.error == true) {
+        console.error(this.playlist.error);
+        return;
+      }
+      this.playlist = playlist.results;
+    } catch (e) {
+      alert("TIMEOUT");
     }
-    this.playlist = playlist.results;
   },
   methods: {
     moreInfo: function(e, id) {
@@ -113,31 +118,63 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.song-container {
-  display: flex;
-  flex-direction: row;
-  & .song {
-    width: 75%;
-  }
-  & .song-context-button {
-    width: 25%;
+.playlist-conatiner {
+  background-color: #2d2d2d;
+  padding-top: 5px;
+
+  & .playlist-element {
     display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-}
+    flex-direction: row;
+    box-shadow: 0px 0px 2px #000000;
+    border-radius: 5px;
+    background: #2d2d2d;
+    color: white;
+    margin: 5px 5px;
+    cursor: pointer;
 
-.pagination-buttons {
-  display: flex;
-  justify-content: space-between;
+    &:hover {
+      box-shadow: 0px 0px 3px #000000;
+    }
 
-  & button {
-    width: 35%;
-    height: 30px;
+    &:active {
+      background: #000000;
+    }
 
-    &.first,
-    &.last {
+    & .song {
+      width: 90%;
+    }
+    & .song-context-button {
       width: 10%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-left: 1px solid black;
+    }
+  }
+
+  .pagination-buttons {
+    display: flex;
+    justify-content: space-between;
+    color: white;
+    padding: 10px 0;
+
+    & span {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    & button {
+      width: 35%;
+      height: 30px;
+      background: transparent;
+      color: white;
+      border: none;
+
+      &.first,
+      &.last {
+        width: 10%;
+      }
     }
   }
 }
