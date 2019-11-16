@@ -10,12 +10,24 @@ var toShowConfig = {
   startTime: 1,
   userpass: 1,
   vote: 1,
-  toggleChat: { $ifNull: ["$toggleChat", true] },
-  strictSkip: { $ifNull: ["$strictSkip", false] },
-  strictSkipNumber: { $ifNull: ["$strictSkipNumber", 10] },
-  description: { $ifNull: ["$description", ""] },
-  thumbnail: { $ifNull: ["$thumbnail", ""] },
-  rules: { $ifNull: ["$rules", ""] },
+  toggleChat: {
+    $ifNull: ["$toggleChat", true]
+  },
+  strictSkip: {
+    $ifNull: ["$strictSkip", false]
+  },
+  strictSkipNumber: {
+    $ifNull: ["$strictSkipNumber", 10]
+  },
+  description: {
+    $ifNull: ["$description", ""]
+  },
+  thumbnail: {
+    $ifNull: ["$thumbnail", ""]
+  },
+  rules: {
+    $ifNull: ["$rules", ""]
+  },
   _id: 0
 };
 
@@ -30,8 +42,12 @@ var project_object = {
   duration: 1,
   end: 1,
   type: 1,
-  added_by: { $ifNull: ["$added_by", "Anonymous"] },
-  source: { $ifNull: ["$source", "youtube"] },
+  added_by: {
+    $ifNull: ["$added_by", "Anonymous"]
+  },
+  source: {
+    $ifNull: ["$source", "youtube"]
+  },
   thumbnail: {
     $ifNull: [
       "$thumbnail",
@@ -40,7 +56,9 @@ var project_object = {
       }
     ]
   },
-  tags: { $ifNull: ["$tags", []] }
+  tags: {
+    $ifNull: ["$tags", []]
+  }
 };
 
 var toShowChannel = {

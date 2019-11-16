@@ -1,12 +1,5 @@
 var Functions = require(pathThumbnails + "/handlers/functions.js");
 var crypto = require("crypto");
-var Filter = require("bad-words");
-var filter = new Filter({ placeHolder: "x" });
-/*var filter = {
-    clean: function(str) {
-        return str;
-    }
-}*/
 var projects = require(pathThumbnails + "/handlers/aggregates.js");
 var db = require(pathThumbnails + "/handlers/db.js");
 
@@ -48,12 +41,12 @@ function password(inp, coll, guid, offline, socket) {
     uncrypted = pw;
     pw = Functions.hash_pass(Functions.decrypt_string(pw), true);
     Functions.check_inlist(coll, guid, socket, offline, undefined, "place 8");
-    Functions.getSessionAdminUser(sessionId, coll, function(
+    Functions.getSessionAdminUser(sessionId, coll, function (
       userpass,
       adminpass
     ) {
       adminpass = Functions.hash_pass(adminpass);
-      db.collection(coll + "_settings").find(function(err, docs) {
+      db.collection(coll + "_settings").find(function (err, docs) {
         if (docs !== null && docs.length !== 0) {
           if (
             docs[0].adminpass === "" ||
@@ -63,11 +56,15 @@ function password(inp, coll, guid, offline, socket) {
               sessionId,
               inp.password,
               coll,
-              function() {
-                db.collection(coll + "_settings").update(
-                  { id: "config" },
-                  { $set: { adminpass: Functions.hash_pass(pw) } },
-                  function(err, docs) {
+              function () {
+                db.collection(coll + "_settings").update({
+                    id: "config"
+                  }, {
+                    $set: {
+                      adminpass: Functions.hash_pass(pw)
+                    }
+                  },
+                  function (err, docs) {
                     if (adminpass != pw && adminpass != "") {
                       socket.emit("toast", "changedpass");
                     } else {
@@ -86,11 +83,15 @@ function password(inp, coll, guid, offline, socket) {
               sessionId,
               inp.password,
               coll,
-              function() {
-                db.collection(coll + "_settings").update(
-                  { id: "config" },
-                  { $set: { adminpass: Functions.hash_pass(pw) } },
-                  function(err, docs) {
+              function () {
+                db.collection(coll + "_settings").update({
+                    id: "config"
+                  }, {
+                    $set: {
+                      adminpass: Functions.hash_pass(pw)
+                    }
+                  },
+                  function (err, docs) {
                     if (adminpass != pw) {
                       socket.emit("toast", "changedpass");
                     }
@@ -104,7 +105,7 @@ function password(inp, coll, guid, offline, socket) {
               Functions.getSession(socket),
               "",
               coll,
-              function() {
+              function () {
                 socket.emit("toast", "wrongpass");
                 socket.emit("pw", false);
               }
@@ -146,7 +147,7 @@ function conf_function(params, coll, guid, offline, socket) {
 
     Functions.check_inlist(coll, guid, socket, offline, undefined, "place 9");
 
-    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function(
+    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
       adminpass,
       gotten
@@ -181,15 +182,13 @@ function conf_function(params, coll, guid, offline, socket) {
         var result = {
           adminpass: {
             expected: "string",
-            got: params.hasOwnProperty("adminpass")
-              ? typeof params.adminpass
-              : undefined
+            got: params.hasOwnProperty("adminpass") ?
+              typeof params.adminpass : undefined
           },
           userpass: {
             expected: "string",
-            got: params.hasOwnProperty("userpass")
-              ? typeof params.userpass
-              : undefined
+            got: params.hasOwnProperty("userpass") ?
+              typeof params.userpass : undefined
           },
           vote: {
             expected: "boolean",
@@ -197,39 +196,33 @@ function conf_function(params, coll, guid, offline, socket) {
           },
           addsongs: {
             expected: "boolean",
-            got: params.hasOwnProperty("addsongs")
-              ? typeof params.addsongs
-              : undefined
+            got: params.hasOwnProperty("addsongs") ?
+              typeof params.addsongs : undefined
           },
           longsongs: {
             expected: "boolean",
-            got: params.hasOwnProperty("longsongs")
-              ? typeof params.longsongs
-              : undefined
+            got: params.hasOwnProperty("longsongs") ?
+              typeof params.longsongs : undefined
           },
           frontpage: {
             expected: "boolean",
-            got: params.hasOwnProperty("frontpage")
-              ? typeof params.frontpage
-              : undefined
+            got: params.hasOwnProperty("frontpage") ?
+              typeof params.frontpage : undefined
           },
           skipping: {
             expected: "boolean",
-            got: params.hasOwnProperty("skipping")
-              ? typeof params.skipping
-              : undefined
+            got: params.hasOwnProperty("skipping") ?
+              typeof params.skipping : undefined
           },
           shuffling: {
             expected: "boolean",
-            got: params.hasOwnProperty("shuffling")
-              ? typeof params.shuffling
-              : undefined
+            got: params.hasOwnProperty("shuffling") ?
+              typeof params.shuffling : undefined
           },
           userpass_changed: {
             expected: "boolean",
-            got: params.hasOwnProperty("userpass_changed")
-              ? typeof params.userpass_changed
-              : undefined
+            got: params.hasOwnProperty("userpass_changed") ?
+              typeof params.userpass_changed : undefined
           }
         };
         socket.emit("update_required", result);
@@ -266,15 +259,16 @@ function conf_function(params, coll, guid, offline, socket) {
         hash = adminpass;
       }
       if (userpass != "") {
-        if (!params.userpass_changed && gotten) {
-        } else {
+        if (!params.userpass_changed && gotten) {} else {
           userpass = crypto
             .createHash("sha256")
             .update(userpass)
             .digest("base64");
         }
       }
-      db.collection(coll + "_settings").find({ id: "config" }, function(
+      db.collection(coll + "_settings").find({
+        id: "config"
+      }, function (
         err,
         docs
       ) {
@@ -326,20 +320,19 @@ function conf_function(params, coll, guid, offline, socket) {
           } else if (frontpage) {
             obj["userpass"] = "";
           }
-          db.collection(coll + "_settings").update(
-            { id: "config" },
-            {
+          db.collection(coll + "_settings").update({
+              id: "config"
+            }, {
               $set: obj
             },
-            function(err, docs) {
+            function (err, docs) {
               Functions.setSessionUserPass(
                 Functions.getSession(socket),
                 obj["userpass"],
                 coll,
-                function() {
+                function () {
                   db.collection(coll + "_settings").aggregate(
-                    [
-                      {
+                    [{
                         $match: {
                           id: "config"
                         }
@@ -348,7 +341,7 @@ function conf_function(params, coll, guid, offline, socket) {
                         $project: projects.toShowConfig
                       }
                     ],
-                    function(err, docs) {
+                    function (err, docs) {
                       if (docs[0].adminpass !== "") docs[0].adminpass = true;
                       if (
                         docs[0].hasOwnProperty("userpass") &&
@@ -359,16 +352,17 @@ function conf_function(params, coll, guid, offline, socket) {
                       io.to(coll).emit("conf", docs);
                       socket.emit("toast", "savedsettings");
 
-                      db.collection("frontpage_lists").update(
-                        { _id: coll },
-                        {
+                      db.collection("frontpage_lists").update({
+                          _id: coll
+                        }, {
                           $set: {
                             frontpage: frontpage,
                             accessed: Functions.get_time()
                           }
+                        }, {
+                          upsert: true
                         },
-                        { upsert: true },
-                        function(err, docs) {}
+                        function (err, docs) {}
                       );
                     }
                   );

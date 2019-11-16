@@ -11,7 +11,9 @@ var Frontpage = require(pathThumbnails + "/handlers/frontpage.js");
 var Search = require(pathThumbnails + "/handlers/search.js");
 var crypto = require("crypto");
 var Filter = require("bad-words");
-var filter = new Filter({ placeHolder: "x" });
+var filter = new Filter({
+  placeHolder: "x"
+});
 /*var filter = {
     clean: function(str) {
         return str;
@@ -19,8 +21,8 @@ var filter = new Filter({ placeHolder: "x" });
 }*/
 var db = require(pathThumbnails + "/handlers/db.js");
 
-module.exports = function() {
-  io.on("connection", function(socket) {
+module.exports = function () {
+  io.on("connection", function (socket) {
     try {
       var parsedCookies = cookie.parse(socket.handshake.headers.cookie);
       socket.cookie_id = parsedCookies["_uI"];
@@ -34,14 +36,14 @@ module.exports = function() {
     if (guid == "empty" || guid == null || guid == undefined)
       guid = Functions.hash_pass(
         socket.handshake.headers["user-agent"] +
-          socket.handshake.address +
-          socket.handshake.headers["accept-language"]
+        socket.handshake.address +
+        socket.handshake.headers["accept-language"]
       );
 
     socket.guid = guid;
-    socket.on("close", function() {});
+    socket.on("close", function () {});
 
-    socket.on("pinging", function() {
+    socket.on("pinging", function () {
       socket.emit("ok");
     });
 
@@ -51,13 +53,16 @@ module.exports = function() {
     var in_list = false;
     var name = "";
     var short_id;
-    Chat.get_name(guid, { announce: false, socket: socket });
+    Chat.get_name(guid, {
+      announce: false,
+      socket: socket
+    });
     var offline = false;
     var chromecast_object = false;
 
     socket.emit("guid", guid);
 
-    socket.on("self_ping", function(msg) {
+    socket.on("self_ping", function (msg) {
       var channel = msg.channel;
       if (channel.indexOf("?") > -1) {
         channel = channel.substring(0, channel.indexOf("?"));
@@ -67,48 +72,68 @@ module.exports = function() {
       }
       //channel = channel.replace(/ /g,'');
       if (offline) {
-        db.collection("connected_users").update(
-          { _id: "offline_users" },
-          { $addToSet: { users: guid } },
-          { upsert: true },
-          function(err, docs) {}
+        db.collection("connected_users").update({
+            _id: "offline_users"
+          }, {
+            $addToSet: {
+              users: guid
+            }
+          }, {
+            upsert: true
+          },
+          function (err, docs) {}
         );
       } else {
-        db.collection("connected_users").update(
-          { _id: channel },
-          { $addToSet: { users: guid } },
-          { upsert: true },
-          function(err, docs) {
-            db.collection("frontpage_lists").update(
-              { _id: channel },
-              { $inc: { viewers: 1 } },
-              { upsert: true },
-              function() {}
+        db.collection("connected_users").update({
+            _id: channel
+          }, {
+            $addToSet: {
+              users: guid
+            }
+          }, {
+            upsert: true
+          },
+          function (err, docs) {
+            db.collection("frontpage_lists").update({
+                _id: channel
+              }, {
+                $inc: {
+                  viewers: 1
+                }
+              }, {
+                upsert: true
+              },
+              function () {}
             );
           }
         );
       }
       if (channel != "" && channel != undefined) {
-        db.collection("connected_users").update(
-          { _id: "total_users" },
-          { $addToSet: { total_users: guid + channel } },
-          { upsert: true },
-          function(err, docs) {}
+        db.collection("connected_users").update({
+            _id: "total_users"
+          }, {
+            $addToSet: {
+              total_users: guid + channel
+            }
+          }, {
+            upsert: true
+          },
+          function (err, docs) {}
         );
       }
     });
 
-    socket.on("logout", function() {
+    socket.on("logout", function () {
       Functions.removeSessionAdminPass(
         Functions.getSession(socket),
         coll,
-        function() {}
+        function () {}
       );
     });
 
-    socket.on("next_song", function(obj) {
+    socket.on("next_song", function (obj) {
       if (obj == undefined || !obj.hasOwnProperty("channel")) return;
-      db.collection(obj.channel + "_settings").find(function(e, docs) {
+      db.collection(obj.channel + "_settings").find(function (e, docs) {
         if (docs.length == 0) return;
         var pass = "";
         if (obj.hasOwnProperty("pass")) {
@@ -128,7 +153,7 @@ module.exports = function() {
       });
     });
 
-    socket.on("chromecast", function(msg) {
+    socket.on("chromecast", function (msg) {
       try {
         if (
           typeof msg == "object" &&
@@ -143,7 +168,9 @@ module.exports = function() {
           if (msg.hasOwnProperty("channel")) {
             msg.channel = Functions.encodeChannelName(msg.channel);
           }
-          db.collection("connected_users").find({ _id: msg.channel }, function(
+          db.collection("connected_users").find({
+            _id: msg.channel
+          }, function (
             err,
             connected_users_channel
           ) {
@@ -161,7 +188,7 @@ module.exports = function() {
                 socket.cookie_id,
                 msg.socket_id,
                 msg.channel,
-                function(results) {}
+                function (results) {}
               );
               //socket.cookie_id = msg.guid;
               guid = msg.guid;
@@ -179,14 +206,14 @@ module.exports = function() {
       }
     });
 
-    socket.on("get_id", function() {
+    socket.on("get_id", function () {
       socket.emit("id_chromecast", {
         cookie_id: Functions.getSession(socket),
         guid: guid
       });
     });
 
-    socket.on("error_video", function(msg) {
+    socket.on("error_video", function (msg) {
       try {
         msg.channel = Functions.encodeChannelName(msg.channel);
         var _list = msg.channel; //.replace(/ /g,'');
@@ -208,17 +235,26 @@ module.exports = function() {
       Search.check_error_video(msg, coll);
     });
 
-    socket.on("get_spread", function() {
-      db.collection("connected_users").find({ _id: "total_users" }, function(
+    socket.on("get_spread", function () {
+      db.collection("connected_users").find({
+        _id: "total_users"
+      }, function (
         err,
         tot
       ) {
-        db.collection("connected_users").find(
-          { _id: "offline_users" },
-          function(err, off) {
-            db.collection("connected_users").find(
-              { _id: { $ne: "total_users" }, _id: { $ne: "offline_users" } },
-              function(err, users_list) {
+        db.collection("connected_users").find({
+            _id: "offline_users"
+          },
+          function (err, off) {
+            db.collection("connected_users").find({
+                _id: {
+                  $ne: "total_users"
+                },
+                _id: {
+                  $ne: "offline_users"
+                }
+              },
+              function (err, users_list) {
                 if (tot.length > 0 && off.length == 0) {
                   socket.emit("spread_listeners", {
                     offline: 0,
@@ -239,7 +275,7 @@ module.exports = function() {
       });
     });
 
-    socket.on("suggest_thumbnail", function(msg) {
+    socket.on("suggest_thumbnail", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -250,7 +286,7 @@ module.exports = function() {
       Suggestions.thumbnail(msg, coll, guid, offline, socket);
     });
 
-    socket.on("suggest_description", function(msg) {
+    socket.on("suggest_description", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -261,7 +297,7 @@ module.exports = function() {
       Suggestions.description(msg, coll, guid, offline, socket);
     });
 
-    socket.on("suggest_rules", function(msg) {
+    socket.on("suggest_rules", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -272,7 +308,7 @@ module.exports = function() {
       Suggestions.rules(msg, coll, guid, offline, socket);
     });
 
-    socket.on("namechange", function(msg) {
+    socket.on("namechange", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -283,7 +319,7 @@ module.exports = function() {
       Chat.namechange(msg, guid, socket);
     });
 
-    socket.on("removename", function(msg) {
+    socket.on("removename", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -304,7 +340,7 @@ module.exports = function() {
       Chat.removename(guid, msg.channel, socket);
     });
 
-    socket.on("offline", function(msg) {
+    socket.on("offline", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -340,41 +376,66 @@ module.exports = function() {
         if (coll !== undefined) {
           coll = Functions.removeEmojis(coll).toLowerCase();
           //coll = filter.clean(coll);
-          db.collection("connected_users").findAndModify(
-            {
-              query: { _id: coll },
-              update: { $pull: { users: guid } },
+          db.collection("connected_users").findAndModify({
+              query: {
+                _id: coll
+              },
+              update: {
+                $pull: {
+                  users: guid
+                }
+              },
               upsert: true
             },
-            function(err, updated, d) {
+            function (err, updated, d) {
               if (d.n == 1) {
                 var num = 0;
                 if (updated && updated.users) {
                   num = updated.users.length;
                 }
                 io.to(coll).emit("viewers", num);
-                db.collection("frontpage_lists").update(
-                  { _id: coll, viewers: { $gt: 0 } },
-                  { $inc: { viewers: -1 } },
-                  function(err, docs) {}
+                db.collection("frontpage_lists").update({
+                    _id: coll,
+                    viewers: {
+                      $gt: 0
+                    }
+                  }, {
+                    $inc: {
+                      viewers: -1
+                    }
+                  },
+                  function (err, docs) {}
                 );
-                db.collection("connected_users").update(
-                  { _id: "total_users" },
-                  { $pull: { total_users: guid + coll } },
-                  function(err, docs) {
-                    db.collection("connected_users").update(
-                      { _id: "offline_users" },
-                      { $addToSet: { users: guid } },
-                      { upsert: true },
-                      function(err, docs) {
+                db.collection("connected_users").update({
+                    _id: "total_users"
+                  }, {
+                    $pull: {
+                      total_users: guid + coll
+                    }
+                  },
+                  function (err, docs) {
+                    db.collection("connected_users").update({
+                        _id: "offline_users"
+                      }, {
+                        $addToSet: {
+                          users: guid
+                        }
+                      }, {
+                        upsert: true
+                      },
+                      function (err, docs) {
                         if (
                           docs.nModified == 1 &&
                           (coll != undefined && coll != "")
                         ) {
-                          db.collection("connected_users").update(
-                            { _id: "total_users" },
-                            { $addToSet: { total_users: guid + coll } },
-                            function(err, docs) {}
+                          db.collection("connected_users").update({
+                              _id: "total_users"
+                            }, {
+                              $addToSet: {
+                                total_users: guid + coll
+                              }
+                            },
+                            function (err, docs) {}
                           );
                         }
                       }
@@ -390,10 +451,14 @@ module.exports = function() {
         Functions.remove_unique_id(short_id);
       } else {
         offline = false;
-        db.collection("connected_users").update(
-          { _id: "offline_users" },
-          { $pull: { users: guid } },
-          function(err, docs) {
+        db.collection("connected_users").update({
+            _id: "offline_users"
+          }, {
+            $pull: {
+              users: guid
+            }
+          },
+          function (err, docs) {
             Functions.check_inlist(
               coll,
               guid,
@@ -407,7 +472,7 @@ module.exports = function() {
       }
     });
 
-    socket.on("get_history", function(msg) {
+    socket.on("get_history", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -441,7 +506,7 @@ module.exports = function() {
       Chat.get_history(msg.channel, msg.all, socket);
     });
 
-    socket.on("chat", function(msg) {
+    socket.on("chat", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -452,7 +517,7 @@ module.exports = function() {
       Chat.chat(msg, guid, offline, socket);
     });
 
-    socket.on("all,chat", function(data) {
+    socket.on("all,chat", function (data) {
       if (data.hasOwnProperty("channel") && data.channel.indexOf("?") > -1) {
         var _list = data.channel.substring(0, data.channel.indexOf("?"));
         data.channel = _list;
@@ -463,7 +528,7 @@ module.exports = function() {
       Chat.all_chat(data, guid, offline, socket);
     });
 
-    socket.on("frontpage_lists", function(msg) {
+    socket.on("frontpage_lists", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -474,7 +539,7 @@ module.exports = function() {
       Frontpage.frontpage_lists(msg, socket);
     });
 
-    socket.on("import_zoff", function(msg) {
+    socket.on("import_zoff", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -485,11 +550,11 @@ module.exports = function() {
       ListChange.addFromOtherList(msg, guid, offline, socket);
     });
 
-    socket.on("now_playing", function(list, fn) {
+    socket.on("now_playing", function (list, fn) {
       List.now_playing(list, fn, socket);
     });
 
-    socket.on("id", function(arr) {
+    socket.on("id", function (arr) {
       if (arr.hasOwnProperty("channel") && arr.channel.indexOf("?") > -1) {
         var _list = arr.channel.substring(0, arr.channel.indexOf("?"));
         arr.channel = _list;
@@ -504,7 +569,7 @@ module.exports = function() {
         });
     });
 
-    socket.on("join_silent", function(msg) {
+    socket.on("join_silent", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -517,7 +582,7 @@ module.exports = function() {
       List.join_silent(msg, socket);
     });
 
-    socket.on("list", function(msg) {
+    socket.on("list", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -548,7 +613,7 @@ module.exports = function() {
       Functions.get_short_id(socket);
     });
 
-    socket.on("end", function(obj) {
+    socket.on("end", function (obj) {
       if (obj.hasOwnProperty("channel") && obj.channel.indexOf("?") > -1) {
         var _list = obj.channel.substring(0, obj.channel.indexOf("?"));
         obj.channel = _list;
@@ -570,7 +635,7 @@ module.exports = function() {
       List.end(obj, coll, guid, offline, socket);
     });
 
-    socket.on("addPlaylist", function(arr) {
+    socket.on("addPlaylist", function (arr) {
       if (arr.hasOwnProperty("channel") && arr.channel.indexOf("?") > -1) {
         var _list = arr.channel.substring(0, arr.channel.indexOf("?"));
         arr.channel = _list;
@@ -581,7 +646,7 @@ module.exports = function() {
       ListChange.addPlaylist(arr, guid, offline, socket);
     });
 
-    socket.on("add", function(arr) {
+    socket.on("add", function (arr) {
       if (arr.hasOwnProperty("list") && arr.list.indexOf("?") > -1) {
         var _list = arr.list.substring(0, arr.list.indexOf("?"));
         arr.list = _list;
@@ -610,7 +675,7 @@ module.exports = function() {
       ListChange.add_function(arr, coll, guid, offline, socket);
     });
 
-    socket.on("delete_all", function(msg) {
+    socket.on("delete_all", function (msg) {
       try {
         if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
           var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
@@ -632,7 +697,7 @@ module.exports = function() {
       ListChange.delete_all(msg, coll, guid, offline, socket);
     });
 
-    socket.on("vote", function(msg) {
+    socket.on("vote", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -655,7 +720,7 @@ module.exports = function() {
       ListChange.voteUndecided(msg, coll, guid, offline, socket);
     });
 
-    socket.on("password", function(inp) {
+    socket.on("password", function (inp) {
       if (inp.hasOwnProperty("channel") && inp.channel.indexOf("?") > -1) {
         var _list = inp.channel.substring(0, inp.channel.indexOf("?"));
         inp.channel = _list;
@@ -667,7 +732,7 @@ module.exports = function() {
       ListSettings.password(inp, coll, guid, offline, socket);
     });
 
-    socket.on("skip", function(list) {
+    socket.on("skip", function (list) {
       if (list.hasOwnProperty("channel") && list.channel.indexOf("?") > -1) {
         var _list = list.channel.substring(0, list.channel.indexOf("?"));
         list.channel = _list;
@@ -680,7 +745,7 @@ module.exports = function() {
       List.skip(list, guid, coll, offline, socket);
     });
 
-    socket.on("conf", function(conf) {
+    socket.on("conf", function (conf) {
       if (conf.hasOwnProperty("channel") && conf.channel.indexOf("?") > -1) {
         var _list = conf.channel.substring(0, conf.channel.indexOf("?"));
         conf.channel = _list;
@@ -694,7 +759,7 @@ module.exports = function() {
       ListSettings.conf_function(conf, coll, guid, offline, socket);
     });
 
-    socket.on("shuffle", function(msg) {
+    socket.on("shuffle", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -716,7 +781,7 @@ module.exports = function() {
       ListChange.shuffle(msg, coll, guid, offline, socket);
     });
 
-    socket.on("change_channel", function(obj) {
+    socket.on("change_channel", function (obj) {
       if (obj == undefined && coll != undefined) {
         obj = {};
         obj.channel = coll;
@@ -762,7 +827,7 @@ module.exports = function() {
       in_list = false;
     });
 
-    socket.on("disconnect", function() {
+    socket.on("disconnect", function () {
       Functions.left_channel(
         coll,
         guid,
@@ -774,7 +839,7 @@ module.exports = function() {
       );
     });
 
-    socket.on("disconnected", function() {
+    socket.on("disconnected", function () {
       Functions.left_channel(
         coll,
         guid,
@@ -786,7 +851,7 @@ module.exports = function() {
       );
     });
 
-    socket.on("left_channel", function(msg) {
+    socket.on("left_channel", function (msg) {
       if (msg.hasOwnProperty("channel") && msg.channel.indexOf("?") > -1) {
         var _list = msg.channel.substring(0, msg.channel.indexOf("?"));
         msg.channel = _list;
@@ -814,7 +879,7 @@ module.exports = function() {
       }
     });
 
-    socket.on("reconnect_failed", function() {
+    socket.on("reconnect_failed", function () {
       Functions.left_channel(
         coll,
         guid,
@@ -826,7 +891,7 @@ module.exports = function() {
       );
     });
 
-    socket.on("connect_timeout", function() {
+    socket.on("connect_timeout", function () {
       Functions.left_channel(
         coll,
         guid,
@@ -838,7 +903,7 @@ module.exports = function() {
       );
     });
 
-    socket.on("error", function() {
+    socket.on("error", function () {
       Functions.left_channel(
         coll,
         guid,
@@ -850,7 +915,7 @@ module.exports = function() {
       );
     });
 
-    socket.on("pos", function(obj) {
+    socket.on("pos", function (obj) {
       if (
         obj != undefined &&
         obj.hasOwnProperty("channel") &&
@@ -893,11 +958,11 @@ module.exports = function() {
         return;
       }
       if (coll == undefined) return;
-      db.collection(coll + "_settings").find(function(err, docs) {
+      db.collection(coll + "_settings").find(function (err, docs) {
         Functions.getSessionAdminUser(
           Functions.getSession(socket),
           coll,
-          function(userpass, adminpass) {
+          function (userpass, adminpass) {
             if (userpass != "" || obj.pass == undefined) {
               obj.pass = userpass;
             } else {

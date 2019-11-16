@@ -19,7 +19,10 @@ function check_if_error_or_blocked(id, channel, errored, callback) {
     callback(false);
     return;
   }
-  db.collection(channel).find({ id: id, now_playing: true }, function(
+  db.collection(channel).find({
+    id: id,
+    now_playing: true
+  }, function (
     err,
     song
   ) {
@@ -29,16 +32,14 @@ function check_if_error_or_blocked(id, channel, errored, callback) {
     }
     var song_info = song[0];
     if (song_info.source != "soundcloud") {
-      request(
-        {
+      request({
           type: "GET",
-          url:
-            "https://www.googleapis.com/youtube/v3/videos?part=id,status,contentDetails&key=" +
+          url: "https://www.googleapis.com/youtube/v3/videos?part=id,status,contentDetails&key=" +
             key +
             "&id=" +
             song_info.id
         },
-        function(error, response, body) {
+        function (error, response, body) {
           try {
             var resp = JSON.parse(body);
             if (resp.pageInfo.totalResults == 0) {
@@ -62,7 +63,7 @@ function check_if_error_or_blocked(id, channel, errored, callback) {
               ) &&
               resp.items[0].contentDetails.regionRestriction.blocked.length > 0
             ) {
-              var any = resp.items[0].contentDetails.blocked.some(function(
+              var any = resp.items[0].contentDetails.blocked.some(function (
                 element
               ) {
                 return countryCodes.indexOf(element) > -1;
@@ -81,16 +82,14 @@ function check_if_error_or_blocked(id, channel, errored, callback) {
         }
       );
     } else {
-      request(
-        {
+      request({
           type: "GET",
-          url:
-            "http://api.soundcloud.com/tracks/" +
+          url: "http://api.soundcloud.com/tracks/" +
             song_info.id +
             "?client_id=" +
             soundcloudKey
         },
-        function(error, response, body) {
+        function (error, response, body) {
           try {
             var resp = JSON.parse(body);
             if (resp.sharing != "public" || resp.embeddable_by != "all") {
@@ -116,10 +115,10 @@ function filterFunction(el) {
 function get_genres_soundcloud(song, channel) {
   request(
     "http://api.soundcloud.com/tracks/" +
-      song.id +
-      "?client_id=" +
-      soundcloudKey,
-    function(err, response, body) {
+    song.id +
+    "?client_id=" +
+    soundcloudKey,
+    function (err, response, body) {
       if (err) {
         console.log("error start", err, song, "error end");
         return;
@@ -138,14 +137,14 @@ function get_genres_soundcloud(song, channel) {
           .concat(object.tag_list.toLowerCase().split('"'));
         genre = genre.filter(filterFunction);
 
-        db.collection(channel).update(
-          { id: song.id },
-          {
+        db.collection(channel).update({
+            id: song.id
+          }, {
             $set: {
               tags: genre
             }
           },
-          function(e, d) {}
+          function (e, d) {}
         );
       } catch (e) {
         console.log("errored 2", e);
@@ -203,10 +202,10 @@ function get_genres_soundcloud_recursive(arr, channel, i, callback) {
   var song = arr[i];
   request(
     "http://api.soundcloud.com/tracks/" +
-      song.id +
-      "?client_id=" +
-      soundcloudKey,
-    function(err, response, body) {
+    song.id +
+    "?client_id=" +
+    soundcloudKey,
+    function (err, response, body) {
       if (err) {
         console.log("error start", err, song, "error end");
         get_genres_soundcloud_recursive(arr, channel, i + 1, callback);
@@ -228,14 +227,14 @@ function get_genres_soundcloud_recursive(arr, channel, i, callback) {
           .concat(object.tag_list.toLowerCase().split('"'));
         genre = genre.filter(filterFunction);
 
-        db.collection(channel).update(
-          { id: song.id },
-          {
+        db.collection(channel).update({
+            id: song.id
+          }, {
             $set: {
               tags: genre
             }
           },
-          function(e, d) {
+          function (e, d) {
             get_genres_soundcloud_recursive(arr, channel, i + 1, callback);
           }
         );
@@ -258,8 +257,8 @@ function get_genres_list_recursive(list, channel, callback) {
       soundcloud_array.push(list[i]);
     }
   }
-  start_youtube_get(youtube_array, channel, function() {
-    start_soundcloud_get(soundcloud_array, channel, function() {
+  start_youtube_get(youtube_array, channel, function () {
+    start_soundcloud_get(soundcloud_array, channel, function () {
       if (typeof callback == "function") callback();
     });
   });
@@ -281,16 +280,14 @@ function get_genres_youtube_recursive(arr, channel, i, callback) {
     }
     ids.push(arr[y].id);
   }
-  request(
-    {
+  request({
       type: "GET",
-      url:
-        "https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet,id,topicDetails&key=" +
+      url: "https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet,id,topicDetails&key=" +
         key +
         "&id=" +
         ids.join(",")
     },
-    function(error, response, body) {
+    function (error, response, body) {
       if (error) {
         get_genres_youtube_recursive(arr, channel, i + ids.length, callback);
         return;
@@ -315,14 +312,14 @@ function get_genres_youtube_recursive(arr, channel, i, callback) {
             .split(",");
           genre = genre.filter(filterFunction);
           //console.log(resp.items[i].id + " - ", genre);
-          db.collection(channel).update(
-            { id: resp.items[z].id },
-            {
+          db.collection(channel).update({
+              id: resp.items[z].id
+            }, {
               $set: {
                 tags: genre
               }
             },
-            function(e, d) {}
+            function (e, d) {}
           );
         }
         get_genres_youtube_recursive(arr, channel, i + ids.length, callback);
@@ -334,16 +331,14 @@ function get_genres_youtube_recursive(arr, channel, i, callback) {
 }
 
 function get_genres_youtube(ids, channel) {
-  request(
-    {
+  request({
       type: "GET",
-      url:
-        "https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet,id,topicDetails&key=" +
+      url: "https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet,id,topicDetails&key=" +
         key +
         "&id=" +
         ids
     },
-    function(error, response, body) {
+    function (error, response, body) {
       if (error) {
         return;
       }
@@ -366,14 +361,14 @@ function get_genres_youtube(ids, channel) {
             .split(",");
           genre = genre.filter(filterFunction);
           //console.log(resp.items[i].id + " - ", genre);
-          db.collection(channel).update(
-            { id: resp.items[i].id },
-            {
+          db.collection(channel).update({
+              id: resp.items[i].id
+            }, {
               $set: {
                 tags: genre
               }
             },
-            function(e, d) {}
+            function (e, d) {}
           );
         }
       }
@@ -383,16 +378,14 @@ function get_genres_youtube(ids, channel) {
 
 function get_correct_info(song_generated, channel, broadcast, callback) {
   //channel = channel.replace(/ /g,'');
-  request(
-    {
+  request({
       type: "GET",
-      url:
-        "https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet,id,topicDetails&key=" +
+      url: "https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet,id,topicDetails&key=" +
         key +
         "&id=" +
         song_generated.id
     },
-    function(error, response, body) {
+    function (error, response, body) {
       try {
         var resp = JSON.parse(body);
         if (resp.items.length == 1) {
@@ -424,9 +417,9 @@ function get_correct_info(song_generated, channel, broadcast, callback) {
               song_generated.start = 0;
               song_generated.end = duration;
             }
-            db.collection(channel).update(
-              { id: song_generated.id },
-              {
+            db.collection(channel).update({
+                id: song_generated.id
+              }, {
                 $set: {
                   duration: song_generated.duration,
                   start: song_generated.start,
@@ -435,7 +428,7 @@ function get_correct_info(song_generated, channel, broadcast, callback) {
                   tags: genre
                 }
               },
-              function(err, docs) {
+              function (err, docs) {
                 if (broadcast && docs.nModified == 1) {
                   song_generated.new_id = song_generated.id;
                   //if(song_generated.type == "video")
@@ -455,14 +448,14 @@ function get_correct_info(song_generated, channel, broadcast, callback) {
               }
             );
           } else {
-            db.collection(channel).update(
-              { id: song_generated.id },
-              {
+            db.collection(channel).update({
+                id: song_generated.id
+              }, {
                 $set: {
                   tags: genre
                 }
               },
-              function(e, d) {
+              function (e, d) {
                 if (typeof callback == "function") {
                   callback(song_generated, true);
                 }
@@ -502,16 +495,14 @@ function check_error_video(msg, channel) {
   }
   if (msg.source == "soundcloud") return;
   //channel = channel.replace(/ /g,'');
-  request(
-    {
+  request({
       type: "GET",
-      url:
-        "https://www.googleapis.com/youtube/v3/videos?part=id&key=" +
+      url: "https://www.googleapis.com/youtube/v3/videos?part=id&key=" +
         key +
         "&id=" +
         msg.id
     },
-    function(error, response, body) {
+    function (error, response, body) {
       try {
         var resp = JSON.parse(body);
         if (resp.pageInfo.totalResults == 0) {
@@ -531,12 +522,11 @@ function findSimilar(msg, channel, broadcast, callback) {
     key +
     "&videoEmbeddable=true&part=id&type=video&order=viewCount&safeSearch=none&maxResults=5&q=" +
     encodeURIComponent(msg.title);
-  request(
-    {
+  request({
       method: "GET",
       url: yt_url
     },
-    function(error, response, body) {
+    function (error, response, body) {
       var resp = JSON.parse(body);
       if (resp.items.length > 0) {
         var vid_url =
@@ -546,12 +536,11 @@ function findSimilar(msg, channel, broadcast, callback) {
         for (var i = 0; i < resp.items.length; i++) {
           vid_url += resp.items[i].id.videoId + ",";
         }
-        request(
-          {
+        request({
             type: "GET",
             url: vid_url
           },
-          function(error, response, body) {
+          function (error, response, body) {
             var resp = JSON.parse(body);
             var found = false;
             var element = {};
@@ -576,12 +565,12 @@ function findSimilar(msg, channel, broadcast, callback) {
               }
             }
             if (found) {
-              db.collection(channel).update(
-                { id: msg.id },
-                {
+              db.collection(channel).update({
+                  id: msg.id
+                }, {
                   $set: element
                 },
-                function(err, docs) {
+                function (err, docs) {
                   if (
                     docs &&
                     docs.hasOwnProperty("nModified") &&

@@ -8,7 +8,7 @@ function requested_change(type, string, channel) {
 
     let transporter = nodemailer.createTransport(mailconfig);
 
-    transporter.verify(function(error, success) {
+    transporter.verify(function (error, success) {
       if (error) {
         return;
       } else {

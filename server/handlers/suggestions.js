@@ -22,22 +22,22 @@ function thumbnail(msg, coll, guid, offline, socket) {
         },
         thumbnail: {
           expected: "string",
-          got: msg.hasOwnProperty("thumbnail")
-            ? typeof msg.thumbnail
-            : undefined
+          got: msg.hasOwnProperty("thumbnail") ?
+            typeof msg.thumbnail :
+            undefined
         },
         adminpass: {
           expected: "string",
-          got: msg.hasOwnProperty("adminpass")
-            ? typeof msg.adminpass
-            : undefined
+          got: msg.hasOwnProperty("adminpass") ?
+            typeof msg.adminpass :
+            undefined
         }
       };
       socket.emit("update_required", result);
       return;
     }
     //coll = coll.replace(/ /g,'');
-    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function(
+    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
       adminpass
     ) {
@@ -63,7 +63,9 @@ function thumbnail(msg, coll, guid, offline, socket) {
       }
       var channel = msg.channel.toLowerCase();
       var hash = msg.adminpass;
-      db.collection(channel + "_settings").find({ id: "config" }, function(
+      db.collection(channel + "_settings").find({
+        id: "config"
+      }, function (
         err,
         docs
       ) {
@@ -79,11 +81,16 @@ function thumbnail(msg, coll, guid, offline, socket) {
             docs[0].adminpass !== "" &&
             docs[0].adminpass == hash
           ) {
-            db.collection("suggested_thumbnails").update(
-              { channel: channel },
-              { $set: { thumbnail: msg.thumbnail } },
-              { upsert: true },
-              function(err, docs) {
+            db.collection("suggested_thumbnails").update({
+                channel: channel
+              }, {
+                $set: {
+                  thumbnail: msg.thumbnail
+                }
+              }, {
+                upsert: true
+              },
+              function (err, docs) {
                 Notifications.requested_change(
                   "thumbnail",
                   msg.thumbnail,
@@ -117,22 +124,22 @@ function description(msg, coll, guid, offline, socket) {
         },
         description: {
           expected: "string",
-          got: msg.hasOwnProperty("description")
-            ? typeof msg.description
-            : undefined
+          got: msg.hasOwnProperty("description") ?
+            typeof msg.description :
+            undefined
         },
         adminpass: {
           expected: "string",
-          got: msg.hasOwnProperty("adminpass")
-            ? typeof msg.adminpass
-            : undefined
+          got: msg.hasOwnProperty("adminpass") ?
+            typeof msg.adminpass :
+            undefined
         }
       };
       socket.emit("update_required", result);
       return;
     }
     //coll = coll.replace(/ /g,'');
-    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function(
+    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
       adminpass,
       gotten
@@ -154,7 +161,9 @@ function description(msg, coll, guid, offline, socket) {
       }
       var channel = msg.channel.toLowerCase();
       var hash = msg.adminpass;
-      db.collection(channel + "_settings").find({ id: "config" }, function(
+      db.collection(channel + "_settings").find({
+        id: "config"
+      }, function (
         err,
         docs
       ) {
@@ -170,11 +179,16 @@ function description(msg, coll, guid, offline, socket) {
             docs[0].adminpass !== "" &&
             docs[0].adminpass == hash
           ) {
-            db.collection("suggested_descriptions").update(
-              { channel: channel },
-              { $set: { description: msg.description } },
-              { upsert: true },
-              function(err, docs) {
+            db.collection("suggested_descriptions").update({
+                channel: channel
+              }, {
+                $set: {
+                  description: msg.description
+                }
+              }, {
+                upsert: true
+              },
+              function (err, docs) {
                 Notifications.requested_change(
                   "description",
                   msg.description,
@@ -212,16 +226,16 @@ function rules(msg, coll, guid, offline, socket) {
         },
         adminpass: {
           expected: "string",
-          got: msg.hasOwnProperty("adminpass")
-            ? typeof msg.adminpass
-            : undefined
+          got: msg.hasOwnProperty("adminpass") ?
+            typeof msg.adminpass :
+            undefined
         }
       };
       socket.emit("update_required", result);
       return;
     }
     //coll = coll.replace(/ /g,'');
-    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function(
+    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
       adminpass,
       gotten
@@ -243,7 +257,9 @@ function rules(msg, coll, guid, offline, socket) {
       }
       var channel = msg.channel.toLowerCase();
       var hash = msg.adminpass;
-      db.collection(channel + "_settings").find({ id: "config" }, function(
+      db.collection(channel + "_settings").find({
+        id: "config"
+      }, function (
         err,
         docs
       ) {
@@ -259,11 +275,16 @@ function rules(msg, coll, guid, offline, socket) {
             docs[0].adminpass !== "" &&
             docs[0].adminpass == hash
           ) {
-            db.collection("suggested_rules").update(
-              { channel: channel },
-              { $set: { rules: msg.rules } },
-              { upsert: true },
-              function(err, docs) {
+            db.collection("suggested_rules").update({
+                channel: channel
+              }, {
+                $set: {
+                  rules: msg.rules
+                }
+              }, {
+                upsert: true
+              },
+              function (err, docs) {
                 Notifications.requested_change("rules", msg.rules, channel);
                 socket.emit("toast", "suggested_rules");
               }

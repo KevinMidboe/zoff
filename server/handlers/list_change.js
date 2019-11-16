@@ -4,13 +4,6 @@ var Frontpage = require(pathThumbnails + "/handlers/frontpage.js");
 var Search = require(pathThumbnails + "/handlers/search.js");
 var Chat = require(pathThumbnails + "/handlers/chat.js");
 var crypto = require("crypto");
-var Filter = require("bad-words");
-var filter = new Filter({ placeHolder: "x" });
-/*var filter = {
-clean: function(str) {
-return str;
-}
-}*/
 var db = require(pathThumbnails + "/handlers/db.js");
 
 function addFromOtherList(arr, guid, offline, socket) {
@@ -29,9 +22,8 @@ function addFromOtherList(arr, guid, offline, socket) {
         },
         new_channel: {
           expected: "string",
-          got: arr.hasOwnProperty("new_channel")
-            ? typeof arr.new_channel
-            : undefined
+          got: arr.hasOwnProperty("new_channel") ?
+            typeof arr.new_channel : undefined
         }
       };
       socket.emit("update_required", result);
@@ -39,7 +31,9 @@ function addFromOtherList(arr, guid, offline, socket) {
     }
     var channel = arr.channel; //.replace(/ /g,'').toLowerCase();
     var new_channel = Functions.encodeChannelName(arr.new_channel); //.replace(/ /g, '').toLowerCase();
-    db.collection("frontpage_lists").find({ _id: new_channel }, function(
+    db.collection("frontpage_lists").find({
+      _id: new_channel
+    }, function (
       err,
       fp
     ) {
@@ -50,7 +44,7 @@ function addFromOtherList(arr, guid, offline, socket) {
       Functions.getSessionAdminUser(
         Functions.getSession(socket),
         channel,
-        function(userpass, adminpass) {
+        function (userpass, adminpass) {
           if (userpass != "" || arr.userpass == undefined) {
             arr.userpass = userpass;
           } else {
@@ -69,7 +63,7 @@ function addFromOtherList(arr, guid, offline, socket) {
           Functions.getSessionAdminUser(
             Functions.getSession(socket),
             new_channel,
-            function(userpass) {
+            function (userpass) {
               var otheruser = "";
               if (userpass != "") {
                 otheruser = userpass;
@@ -80,17 +74,23 @@ function addFromOtherList(arr, guid, offline, socket) {
                   .digest("base64");
               }
 
-              db.collection(channel).find({ now_playing: true }, function(
+              db.collection(channel).find({
+                now_playing: true
+              }, function (
                 e,
                 np
               ) {
                 var project_object = {
                   id: 1,
                   added: 1,
-                  guids: { $literal: [] },
+                  guids: {
+                    $literal: []
+                  },
                   now_playing: 1,
                   title: 1,
-                  votes: { $literal: 0 },
+                  votes: {
+                    $literal: 0
+                  },
                   start: 1,
                   duration: 1,
                   end: 1,
@@ -101,21 +101,25 @@ function addFromOtherList(arr, guid, offline, socket) {
                 };
                 var to_set_np = true;
                 if (np.length > 0) {
-                  project_object.now_playing = { $literal: false };
+                  project_object.now_playing = {
+                    $literal: false
+                  };
                   to_set_np = false;
                 }
-                db.collection(new_channel + "_settings").find(
-                  { id: "config" },
-                  function(e, this_conf) {
+                db.collection(new_channel + "_settings").find({
+                    id: "config"
+                  },
+                  function (e, this_conf) {
                     if (
                       this_conf.length > 0 &&
                       (this_conf[0].userpass == "" ||
                         !this_conf[0].userpass ||
                         this_conf[0].userpass == otheruser)
                     ) {
-                      db.collection(channel + "_settings").find(
-                        { id: "config" },
-                        function(e, this_conf) {
+                      db.collection(channel + "_settings").find({
+                          id: "config"
+                        },
+                        function (e, this_conf) {
                           var hash = arr.adminpass;
                           if (this_conf.length == 0) {
                             socket.emit("toast", "nolist");
@@ -128,8 +132,8 @@ function addFromOtherList(arr, guid, offline, socket) {
                           ) {
                             var connection_id = Functions.hash_pass(
                               socket.handshake.headers["user-agent"] +
-                                socket.handshake.address +
-                                socket.handshake.headers["accept-language"]
+                              socket.handshake.address +
+                              socket.handshake.headers["accept-language"]
                             );
                             Functions.checkTimeout(
                               "add_playlist",
@@ -139,7 +143,7 @@ function addFromOtherList(arr, guid, offline, socket) {
                               this_conf[0].adminpass,
                               hash,
                               socket,
-                              function() {
+                              function () {
                                 if (
                                   (this_conf[0].addsongs === true &&
                                     (hash == this_conf[0].adminpass ||
@@ -147,15 +151,16 @@ function addFromOtherList(arr, guid, offline, socket) {
                                   this_conf[0].addsongs === false
                                 ) {
                                   db.collection(new_channel).aggregate(
-                                    [
-                                      {
-                                        $match: { type: "video" }
+                                    [{
+                                        $match: {
+                                          type: "video"
+                                        }
                                       },
                                       {
                                         $project: project_object
                                       }
                                     ],
-                                    function(e, docs) {
+                                    function (e, docs) {
                                       var path = require("path");
                                       var mongo_config = require(path.join(
                                         path.join(__dirname, "../config/"),
@@ -171,29 +176,31 @@ function addFromOtherList(arr, guid, offline, socket) {
                                         "/";
                                       MongoClient.connect(
                                         url,
-                                        function(err, _db) {
+                                        function (err, _db) {
                                           var dbo = _db.db(mongo_config.config);
                                           dbo
                                             .collection(channel)
                                             .insertMany(
-                                              docs,
-                                              { ordered: false },
-                                              function(err, res) {
-                                                db.collection(channel).count(
-                                                  {
-                                                    type: { $ne: "suggested" }
+                                              docs, {
+                                                ordered: false
+                                              },
+                                              function (err, res) {
+                                                db.collection(channel).count({
+                                                    type: {
+                                                      $ne: "suggested"
+                                                    }
                                                   },
-                                                  function(err, count) {
+                                                  function (err, count) {
                                                     db.collection(
                                                       channel + "_settings"
-                                                    ).update(
-                                                      { id: "config" },
-                                                      {
+                                                    ).update({
+                                                        id: "config"
+                                                      }, {
                                                         $set: {
                                                           startTime: Functions.get_time()
                                                         }
                                                       },
-                                                      function(e, d) {
+                                                      function (e, d) {
                                                         if (to_set_np) {
                                                           var to_change = {
                                                             _id: channel,
@@ -203,11 +210,10 @@ function addFromOtherList(arr, guid, offline, socket) {
                                                           };
                                                           db.collection(
                                                             new_channel
-                                                          ).find(
-                                                            {
+                                                          ).find({
                                                               now_playing: true
                                                             },
-                                                            function(
+                                                            function (
                                                               e,
                                                               np_docs
                                                             ) {
@@ -217,36 +223,35 @@ function addFromOtherList(arr, guid, offline, socket) {
                                                                 np_docs[0].title;
                                                               db.collection(
                                                                 "frontpage_lists"
-                                                              ).find(
-                                                                {
+                                                              ).find({
                                                                   _id: new_channel
                                                                 },
-                                                                function(
+                                                                function (
                                                                   e,
                                                                   doc
                                                                 ) {
                                                                   if (
                                                                     doc.length >
-                                                                      0 &&
+                                                                    0 &&
                                                                     ((doc[0]
-                                                                      .thumbnail !=
-                                                                      "" &&
-                                                                      doc[0]
+                                                                        .thumbnail !=
+                                                                        "" &&
+                                                                        doc[0]
                                                                         .thumbnail !=
                                                                         undefined &&
-                                                                      (doc[0].thumbnail.indexOf(
-                                                                        "https://i1.sndcdn.com"
-                                                                      ) > -1 ||
-                                                                        doc[0].thumbnail.indexOf(
-                                                                          "https://w1.sndcdn.com"
-                                                                        ) >
+                                                                        (doc[0].thumbnail.indexOf(
+                                                                            "https://i1.sndcdn.com"
+                                                                          ) > -1 ||
+                                                                          doc[0].thumbnail.indexOf(
+                                                                            "https://w1.sndcdn.com"
+                                                                          ) >
                                                                           -1)) ||
                                                                       (doc[0]
                                                                         .thumbnail ==
                                                                         "" ||
                                                                         doc[0]
-                                                                          .thumbnail ==
-                                                                          undefined))
+                                                                        .thumbnail ==
+                                                                        undefined))
                                                                   ) {
                                                                     to_change.thumbnail =
                                                                       np_docs[0].thumbnail;
@@ -254,14 +259,12 @@ function addFromOtherList(arr, guid, offline, socket) {
 
                                                                   db.collection(
                                                                     "frontpage_lists"
-                                                                  ).update(
-                                                                    {
+                                                                  ).update({
                                                                       _id: channel
-                                                                    },
-                                                                    {
+                                                                    }, {
                                                                       $set: to_change
                                                                     },
-                                                                    function(
+                                                                    function (
                                                                       e,
                                                                       d
                                                                     ) {
@@ -290,14 +293,14 @@ function addFromOtherList(arr, guid, offline, socket) {
                                                         } else {
                                                           db.collection(
                                                             "frontpage_lists"
-                                                          ).update(
-                                                            { _id: channel },
-                                                            {
+                                                          ).update({
+                                                              _id: channel
+                                                            }, {
                                                               $set: {
                                                                 count: count
                                                               }
                                                             },
-                                                            function(e, d) {
+                                                            function (e, d) {
                                                               List.send_list(
                                                                 channel,
                                                                 undefined,
@@ -382,7 +385,9 @@ function addPlaylist(arr, guid, offline, socket) {
       socket.emit("toast", "Empty list..");
       return;
     }
-    db.collection("frontpage_lists").find({ _id: channel }, function(err, fp) {
+    db.collection("frontpage_lists").find({
+      _id: channel
+    }, function (err, fp) {
       if (fp.length == 0) {
         socket.emit("toast", "nolist");
         return;
@@ -391,7 +396,7 @@ function addPlaylist(arr, guid, offline, socket) {
       Functions.getSessionAdminUser(
         Functions.getSession(socket),
         channel,
-        function(userpass, adminpass) {
+        function (userpass, adminpass) {
           if (userpass != "" || arr.userpass == undefined) {
             arr.userpass = userpass;
           } else {
@@ -407,12 +412,15 @@ function addPlaylist(arr, guid, offline, socket) {
               Functions.hash_pass(Functions.decrypt_string(arr.adminpass), true)
             );
           }
-          db.collection(channel).find({ now_playing: true }, function(e, np) {
+          db.collection(channel).find({
+            now_playing: true
+          }, function (e, np) {
             var now_playing = false;
             if (np.length == 0) now_playing = true;
-            db.collection(channel + "_settings").find(
-              { id: "config" },
-              function(e, conf) {
+            db.collection(channel + "_settings").find({
+                id: "config"
+              },
+              function (e, conf) {
                 if (arr.length == 0 || arr.songs.length == 0) {
                   socket.emit("toast", "Empty list..");
                   return;
@@ -432,8 +440,8 @@ function addPlaylist(arr, guid, offline, socket) {
                     ) {
                       var connection_id = Functions.hash_pass(
                         socket.handshake.headers["user-agent"] +
-                          socket.handshake.address +
-                          socket.handshake.headers["accept-language"]
+                        socket.handshake.address +
+                        socket.handshake.headers["accept-language"]
                       );
                       Functions.checkTimeout(
                         "add_playlist",
@@ -443,7 +451,7 @@ function addPlaylist(arr, guid, offline, socket) {
                         conf[0].adminpass,
                         hash,
                         socket,
-                        function() {
+                        function () {
                           var path = require("path");
                           var mongo_config = require(path.join(
                             path.join(__dirname, "../config/"),
@@ -458,7 +466,7 @@ function addPlaylist(arr, guid, offline, socket) {
                             "/";
                           MongoClient.connect(
                             url,
-                            function(err, _db) {
+                            function (err, _db) {
                               var dbo = _db.db(mongo_config.config);
                               var number_elements = arr.songs.length + 1;
                               var time = Functions.get_time() - number_elements;
@@ -516,26 +524,29 @@ function addPlaylist(arr, guid, offline, socket) {
                                   }
                                 } else if (this_element.source == "youtube")
                                   this_element.thumbnail =
-                                    "https://img.youtube.com/vi/" +
-                                    this_element.id +
-                                    "/mqdefault.jpg";
+                                  "https://img.youtube.com/vi/" +
+                                  this_element.id +
+                                  "/mqdefault.jpg";
                                 if (now_playing) {
                                   now_playing = false;
                                 }
                                 bulk.insert(this_element);
                               }
-                              bulk.execute(function(err, results) {
-                                db.collection(channel).count(
-                                  { type: { $ne: "suggested" } },
-                                  function(err, count) {
-                                    db.collection(channel + "_settings").update(
-                                      { id: "config" },
-                                      {
+                              bulk.execute(function (err, results) {
+                                db.collection(channel).count({
+                                    type: {
+                                      $ne: "suggested"
+                                    }
+                                  },
+                                  function (err, count) {
+                                    db.collection(channel + "_settings").update({
+                                        id: "config"
+                                      }, {
                                         $set: {
                                           startTime: Functions.get_time()
                                         }
                                       },
-                                      function(e, d) {
+                                      function (e, d) {
                                         if (to_set_np) {
                                           var to_change = {
                                             _id: channel,
@@ -543,32 +554,35 @@ function addPlaylist(arr, guid, offline, socket) {
                                             frontpage: true,
                                             accessed: Functions.get_time()
                                           };
-                                          db.collection(channel).find(
-                                            { now_playing: true },
-                                            function(e, np_docs) {
+                                          db.collection(channel).find({
+                                              now_playing: true
+                                            },
+                                            function (e, np_docs) {
                                               to_change.id = np_docs[0].id;
                                               to_change.title =
                                                 np_docs[0].title;
                                               db.collection(
                                                 "frontpage_lists"
-                                              ).find({ _id: channel }, function(
+                                              ).find({
+                                                _id: channel
+                                              }, function (
                                                 e,
                                                 doc
                                               ) {
                                                 if (
                                                   doc.length > 0 &&
                                                   ((doc[0].thumbnail != "" &&
-                                                    doc[0].thumbnail !=
+                                                      doc[0].thumbnail !=
                                                       undefined &&
-                                                    (doc[0].thumbnail.indexOf(
-                                                      "https://i1.sndcdn.com"
-                                                    ) > -1 ||
-                                                      doc[0].thumbnail.indexOf(
-                                                        "https://w1.sndcdn.com"
-                                                      ) > -1)) ||
+                                                      (doc[0].thumbnail.indexOf(
+                                                          "https://i1.sndcdn.com"
+                                                        ) > -1 ||
+                                                        doc[0].thumbnail.indexOf(
+                                                          "https://w1.sndcdn.com"
+                                                        ) > -1)) ||
                                                     (doc[0].thumbnail == "" ||
                                                       doc[0].thumbnail ==
-                                                        undefined))
+                                                      undefined))
                                                 ) {
                                                   to_change.thumbnail =
                                                     np_docs[0].thumbnail;
@@ -576,10 +590,12 @@ function addPlaylist(arr, guid, offline, socket) {
 
                                                 db.collection(
                                                   "frontpage_lists"
-                                                ).update(
-                                                  { _id: channel },
-                                                  { $set: to_change },
-                                                  function(e, d) {
+                                                ).update({
+                                                    _id: channel
+                                                  }, {
+                                                    $set: to_change
+                                                  },
+                                                  function (e, d) {
                                                     List.send_list(
                                                       channel,
                                                       undefined,
@@ -604,10 +620,14 @@ function addPlaylist(arr, guid, offline, socket) {
                                         } else {
                                           db.collection(
                                             "frontpage_lists"
-                                          ).update(
-                                            { _id: channel },
-                                            { $set: { count: count } },
-                                            function(e, d) {
+                                          ).update({
+                                              _id: channel
+                                            }, {
+                                              $set: {
+                                                count: count
+                                              }
+                                            },
+                                            function (e, d) {
                                               List.send_list(
                                                 channel,
                                                 undefined,
@@ -753,9 +773,8 @@ function add_function(arr, coll, guid, offline, socket) {
         },
         adminpass: {
           expected: "string",
-          got: arr.hasOwnProperty("adminpass")
-            ? typeof arr.adminpass
-            : undefined
+          got: arr.hasOwnProperty("adminpass") ?
+            typeof arr.adminpass : undefined
         },
         source: {
           expected: "string (youtube or soundcloud)",
@@ -763,9 +782,8 @@ function add_function(arr, coll, guid, offline, socket) {
         },
         thumbnail: {
           expected: "url if source == soundcloud",
-          got: arr.hasOwnProperty("thumbnail")
-            ? typeof arr.thumbnail
-            : undefined
+          got: arr.hasOwnProperty("thumbnail") ?
+            typeof arr.thumbnail : undefined
         }
       };
       socket.emit("update_required", result);
@@ -774,7 +792,7 @@ function add_function(arr, coll, guid, offline, socket) {
     if (arr.hasOwnProperty("offsiteAdd") && arr.offsiteAdd) {
       coll = arr.list;
     }
-    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function(
+    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
       adminpass
     ) {
@@ -793,7 +811,7 @@ function add_function(arr, coll, guid, offline, socket) {
           .update(Functions.decrypt_string(arr.pass))
           .digest("base64");
       }
-      db.collection(coll + "_settings").find(function(err, docs) {
+      db.collection(coll + "_settings").find(function (err, docs) {
         if (
           docs.length > 0 &&
           (docs[0].userpass == undefined ||
@@ -820,22 +838,28 @@ function add_function(arr, coll, guid, offline, socket) {
           var source = arr.source;
           var tags = arr.tags;
           conf = docs;
-          Chat.getUserNameByGuid(guid, function(username) {
+          Chat.getUserNameByGuid(guid, function (username) {
             if (
               docs !== null &&
               docs.length !== 0 &&
               ((docs[0].addsongs === true &&
-                (hash == docs[0].adminpass || docs[0].adminpass === "")) ||
+                  (hash == docs[0].adminpass || docs[0].adminpass === "")) ||
                 docs[0].addsongs === false)
             ) {
-              db.collection(coll).find(
-                { id: id, type: { $ne: "suggested" } },
-                function(err, docs) {
+              db.collection(coll).find({
+                  id: id,
+                  type: {
+                    $ne: "suggested"
+                  }
+                },
+                function (err, docs) {
                   if (docs !== null && docs.length === 0) {
                     var guids = [guid];
                     var added = Functions.get_time();
                     var votes = 1;
-                    db.collection(coll).find({ now_playing: true }, function(
+                    db.collection(coll).find({
+                      now_playing: true
+                    }, function (
                       err,
                       docs
                     ) {
@@ -871,26 +895,31 @@ function add_function(arr, coll, guid, offline, socket) {
                         }
                       } else if (source == "youtube")
                         new_song.thumbnail =
-                          "https://img.youtube.com/vi/" +
-                          new_song.id +
-                          "/mqdefault.jpg";
-                      db.collection(coll).update(
-                        { id: id },
-                        new_song,
-                        { upsert: true },
-                        function(err, docs) {
+                        "https://img.youtube.com/vi/" +
+                        new_song.id +
+                        "/mqdefault.jpg";
+                      db.collection(coll).update({
+                          id: id
+                        },
+                        new_song, {
+                          upsert: true
+                        },
+                        function (err, docs) {
                           new_song._id = "asd";
                           if (np) {
                             List.send_list(coll, undefined, false, true, false);
-                            db.collection(coll + "_settings").update(
-                              { id: "config" },
-                              { $set: { startTime: Functions.get_time() } }
-                            );
+                            db.collection(coll + "_settings").update({
+                              id: "config"
+                            }, {
+                              $set: {
+                                startTime: Functions.get_time()
+                              }
+                            });
                             List.send_play(coll, undefined);
                             var thumbnail =
-                              arr.thumbnail != undefined
-                                ? arr.thumbnail
-                                : undefined;
+                              arr.thumbnail != undefined ?
+                              arr.thumbnail :
+                              undefined;
                             Frontpage.update_frontpage(
                               coll,
                               id,
@@ -912,14 +941,19 @@ function add_function(arr, coll, guid, offline, socket) {
                             else if (source == "soundcloud")
                               Search.get_genres_soundcloud(new_song, coll);
                           }
-                          db.collection("frontpage_lists").update(
-                            { _id: coll },
-                            {
-                              $inc: { count: 1 },
-                              $set: { accessed: Functions.get_time() }
+                          db.collection("frontpage_lists").update({
+                              _id: coll
+                            }, {
+                              $inc: {
+                                count: 1
+                              },
+                              $set: {
+                                accessed: Functions.get_time()
+                              }
+                            }, {
+                              upsert: true
                             },
-                            { upsert: true },
-                            function(err, docs) {}
+                            function (err, docs) {}
                           );
                           List.getNextSong(coll, undefined);
                         }
@@ -932,7 +966,9 @@ function add_function(arr, coll, guid, offline, socket) {
                 }
               );
             } else {
-              db.collection(coll).find({ id: id }, function(err, docs) {
+              db.collection(coll).find({
+                id: id
+              }, function (err, docs) {
                 if (docs.length === 0) {
                   var suggestedAdd = {
                     added: Functions.get_time(),
@@ -955,11 +991,14 @@ function add_function(arr, coll, guid, offline, socket) {
                   } else {
                     suggestedAdd.source = "youtube";
                   }
-                  db.collection(coll).update(
-                    { id: id },
-                    { $set: suggestedAdd },
-                    { upsert: true },
-                    function(err, docs) {
+                  db.collection(coll).update({
+                      id: id
+                    }, {
+                      $set: suggestedAdd
+                    }, {
+                      upsert: true
+                    },
+                    function (err, docs) {
                       socket.emit("toast", "suggested");
                       var toSend = suggestedAdd;
                       toSend.guids = [];
@@ -1035,9 +1074,8 @@ function voteUndecided(msg, coll, guid, offline, socket) {
         },
         adminpass: {
           expected: "adminpass",
-          got: msg.hasOwnProperty("adminpass")
-            ? typeof msg.adminpass
-            : undefined
+          got: msg.hasOwnProperty("adminpass") ?
+            typeof msg.adminpass : undefined
         },
         pass: {
           expected: "string",
@@ -1050,7 +1088,7 @@ function voteUndecided(msg, coll, guid, offline, socket) {
     coll = msg.channel.toLowerCase(); //.replace(/ /g,'');
     coll = Functions.removeEmojis(coll).toLowerCase();
     //coll = filter.clean(coll);
-    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function(
+    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
       adminpass
     ) {
@@ -1070,7 +1108,9 @@ function voteUndecided(msg, coll, guid, offline, socket) {
           .digest("base64");
       }
 
-      db.collection(coll + "_settings").find({ id: "config" }, function(
+      db.collection(coll + "_settings").find({
+        id: "config"
+      }, function (
         err,
         docs
       ) {
@@ -1098,7 +1138,7 @@ function voteUndecided(msg, coll, guid, offline, socket) {
               docs !== null &&
               docs.length !== 0 &&
               ((docs[0].vote === true &&
-                (hash == docs[0].adminpass || docs[0].adminpass === "")) ||
+                  (hash == docs[0].adminpass || docs[0].adminpass === "")) ||
                 docs[0].vote === false)
             ) {
               vote(coll, id, guid, socket);
@@ -1145,7 +1185,7 @@ function shuffle(msg, coll, guid, offline, socket) {
   coll = msg.channel.toLowerCase(); //.replace(/ /g,'');
   coll = Functions.removeEmojis(coll).toLowerCase();
   //coll = filter.clean(coll);
-  Functions.getSessionAdminUser(Functions.getSession(socket), coll, function(
+  Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
     userpass,
     adminpass
   ) {
@@ -1174,7 +1214,7 @@ function shuffle(msg, coll, guid, offline, socket) {
       "foo",
       "bar",
       socket,
-      function() {
+      function () {
         Functions.check_inlist(
           coll,
           guid,
@@ -1184,7 +1224,7 @@ function shuffle(msg, coll, guid, offline, socket) {
           "place 7"
         );
         var hash = msg.adminpass;
-        db.collection(coll + "_settings").find(function(err, docs) {
+        db.collection(coll + "_settings").find(function (err, docs) {
           if (
             docs.length > 0 &&
             (docs[0].userpass == undefined ||
@@ -1198,8 +1238,10 @@ function shuffle(msg, coll, guid, offline, socket) {
                 docs[0].shuffle === false)
             ) {
               db.collection(coll)
-                .find({ now_playing: false })
-                .forEach(function(err, docs) {
+                .find({
+                  now_playing: false
+                })
+                .forEach(function (err, docs) {
                   if (!docs) {
                     List.send_list(coll, undefined, false, true, false, true);
                     socket.emit("toast", "shuffled");
@@ -1207,10 +1249,13 @@ function shuffle(msg, coll, guid, offline, socket) {
                     return;
                   } else {
                     num = Math.floor(Math.random() * 1000000);
-                    db.collection(coll).update(
-                      { id: docs.id },
-                      { $set: { added: num } }
-                    );
+                    db.collection(coll).update({
+                      id: docs.id
+                    }, {
+                      $set: {
+                        added: num
+                      }
+                    });
                   }
                 });
             } else socket.emit("toast", "wrongpass");
@@ -1219,7 +1264,7 @@ function shuffle(msg, coll, guid, offline, socket) {
           }
         });
 
-        var complete = function(tot, curr) {
+        var complete = function (tot, curr) {
           if (tot == curr) {
             List.send_list(coll, undefined, false, true, false);
             List.getNextSong(coll, undefined);
@@ -1236,33 +1281,45 @@ function del(params, socket, socketid) {
     //coll = coll.replace(/_/g, "").replace(/ /g,'');
 
     //coll = filter.clean(coll);
-    db.collection(coll + "_settings").find(function(err, docs) {
+    db.collection(coll + "_settings").find(function (err, docs) {
       if (
         docs !== null &&
         docs.length !== 0 &&
         docs[0].adminpass == params.adminpass
       ) {
-        db.collection(coll).find({ id: params.id }, function(err, docs) {
+        db.collection(coll).find({
+          id: params.id
+        }, function (err, docs) {
           var dont_increment = false;
           if (docs[0]) {
             if (docs[0].type == "suggested") {
               dont_increment = true;
             }
-            db.collection(coll).remove({ id: params.id }, function(err, docs) {
+            db.collection(coll).remove({
+              id: params.id
+            }, function (err, docs) {
               socket.emit("toast", "deletesong");
               io.to(coll).emit("channel", {
                 type: "deleted",
                 value: params.id
               });
               if (!dont_increment)
-                db.collection("frontpage_lists").update(
-                  { _id: coll, count: { $gt: 0 } },
-                  {
-                    $inc: { count: -1 },
-                    $set: { accessed: Functions.get_time() }
+                db.collection("frontpage_lists").update({
+                    _id: coll,
+                    count: {
+                      $gt: 0
+                    }
+                  }, {
+                    $inc: {
+                      count: -1
+                    },
+                    $set: {
+                      accessed: Functions.get_time()
+                    }
+                  }, {
+                    upsert: true
                   },
-                  { upsert: true },
-                  function(err, docs) {}
+                  function (err, docs) {}
                 );
             });
           }
@@ -1283,9 +1340,8 @@ function delete_all(msg, coll, guid, offline, socket) {
         },
         adminpass: {
           expected: "adminpass",
-          got: msg.hasOwnProperty("adminpass")
-            ? typeof msg.adminpass
-            : undefined
+          got: msg.hasOwnProperty("adminpass") ?
+            typeof msg.adminpass : undefined
         },
         pass: {
           expected: "string",
@@ -1301,7 +1357,7 @@ function delete_all(msg, coll, guid, offline, socket) {
     //coll = coll.replace(/ /g,'');
     coll = Functions.removeEmojis(coll).toLowerCase();
     //coll = filter.clean(coll);
-    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function(
+    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
       adminpass,
       gotten
@@ -1323,7 +1379,7 @@ function delete_all(msg, coll, guid, offline, socket) {
       }
       var hash = msg.adminpass;
       var hash_userpass = msg.pass;
-      db.collection(coll + "_settings").find(function(err, conf) {
+      db.collection(coll + "_settings").find(function (err, conf) {
         if (conf.length == 1 && conf) {
           conf = conf[0];
           if (
@@ -1335,16 +1391,27 @@ function delete_all(msg, coll, guid, offline, socket) {
                 conf.userpass != undefined &&
                 conf.pass == hash_userpass))
           ) {
-            db.collection(coll).remove(
-              { views: { $exists: false }, type: "video" },
-              { multi: true },
-              function(err, succ) {
+            db.collection(coll).remove({
+                views: {
+                  $exists: false
+                },
+                type: "video"
+              }, {
+                multi: true
+              },
+              function (err, succ) {
                 List.send_list(coll, false, true, true, true);
-                db.collection("frontpage_lists").update(
-                  { _id: coll },
-                  { $set: { count: 0, accessed: Functions.get_time() } },
-                  { upsert: true },
-                  function(err, docs) {}
+                db.collection("frontpage_lists").update({
+                    _id: coll
+                  }, {
+                    $set: {
+                      count: 0,
+                      accessed: Functions.get_time()
+                    }
+                  }, {
+                    upsert: true
+                  },
+                  function (err, docs) {}
                 );
                 socket.emit("toast", "deleted_songs");
               }
@@ -1369,22 +1436,31 @@ function delete_all(msg, coll, guid, offline, socket) {
 
 function vote(coll, id, guid, socket) {
   //coll = coll.replace(/ /g,'');
-  db.collection(coll).find(
-    { id: id, now_playing: false, type: "video" },
-    function(err, docs) {
+  db.collection(coll).find({
+      id: id,
+      now_playing: false,
+      type: "video"
+    },
+    function (err, docs) {
       if (
         docs !== null &&
         docs.length > 0 &&
         !Functions.contains(docs[0].guids, guid)
       ) {
-        db.collection(coll).update(
-          { id: id },
-          {
-            $inc: { votes: 1 },
-            $set: { added: Functions.get_time() },
-            $push: { guids: guid }
+        db.collection(coll).update({
+            id: id
+          }, {
+            $inc: {
+              votes: 1
+            },
+            $set: {
+              added: Functions.get_time()
+            },
+            $push: {
+              guids: guid
+            }
           },
-          function(err, docs) {
+          function (err, docs) {
             socket.emit("toast", "voted");
             io.to(coll).emit("channel", {
               type: "vote",

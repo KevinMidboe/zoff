@@ -4,15 +4,7 @@ var Functions = require(pathThumbnails + "/handlers/functions.js");
 var Frontpage = require(pathThumbnails + "/handlers/frontpage.js");
 var projects = require(pathThumbnails + "/handlers/aggregates.js");
 var crypto = require("crypto");
-var Filter = require("bad-words");
 var Search = require(pathThumbnails + "/handlers/search.js");
-var filter = new Filter({ placeHolder: "x" });
-/*var filter = {
-    clean: function(str) {
-        return str;
-    }
-}*/
-var request = require("request");
 var db = require(pathThumbnails + "/handlers/db.js");
 
 function now_playing(list, fn, socket) {
@@ -20,7 +12,9 @@ function now_playing(list, fn, socket) {
     socket.emit("update_required");
     return;
   }
-  db.collection(list).find({ now_playing: true }, function(err, docs) {
+  db.collection(list).find({
+    now_playing: true
+  }, function (err, docs) {
     if (docs.length === 0) {
       fn("No song currently playing");
       return;
@@ -32,44 +26,44 @@ function now_playing(list, fn, socket) {
 }
 
 function join_silent(msg, socket) {
-    if (typeof msg === "object" && msg !== undefined && msg !== null) {
-      var channelName = msg.channel;
-      var tryingPassword = false;
-      var password = "";
-      if(msg.password != "") {
-        tryingPassword = true;
-        password = Functions.decrypt_string(msg.password);
-        password = crypto
-                 .createHash("sha256")
-                 .update(password)
-                 .digest("base64");
-      }
-
-      channelName = channelName.toLowerCase(); //.replace(/ /g,'');
-      channelName = Functions.removeEmojis(channelName).toLowerCase();
-      db.collection(channelName + "_settings").find(function(err, docs) {
-        if(docs.length == 0) {
-          socket.emit("join_silent_declined", "");
-          return;
-        }
-        if(docs[0].userpass == "" || docs[0].userpass == undefined || docs[0].userpass == password) {
-          socket.join(channelName);
-          socket.emit("join_silent_accepted", "");
-
-          send_play(channelName, socket);
-        } else {
-          socket.emit("join_silent_declined", "");
-        }
-      });
-    } else {
-        return;
+  if (typeof msg === "object" && msg !== undefined && msg !== null) {
+    var channelName = msg.channel;
+    var tryingPassword = false;
+    var password = "";
+    if (msg.password != "") {
+      tryingPassword = true;
+      password = Functions.decrypt_string(msg.password);
+      password = crypto
+        .createHash("sha256")
+        .update(password)
+        .digest("base64");
     }
+
+    channelName = channelName.toLowerCase(); //.replace(/ /g,'');
+    channelName = Functions.removeEmojis(channelName).toLowerCase();
+    db.collection(channelName + "_settings").find(function (err, docs) {
+      if (docs.length == 0) {
+        socket.emit("join_silent_declined", "");
+        return;
+      }
+      if (docs[0].userpass == "" || docs[0].userpass == undefined || docs[0].userpass == password) {
+        socket.join(channelName);
+        socket.emit("join_silent_accepted", "");
+
+        send_play(channelName, socket);
+      } else {
+        socket.emit("join_silent_declined", "");
+      }
+    });
+  } else {
+    return;
+  }
 }
 
 function list(msg, guid, coll, offline, socket) {
   var socketid = socket.zoff_id;
   if (typeof msg === "object" && msg !== undefined && msg !== null) {
-    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function(
+    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
       adminpass,
       gotten
@@ -111,12 +105,14 @@ function list(msg, guid, coll, offline, socket) {
       coll = Functions.removeEmojis(coll).toLowerCase();
       //coll = filter.clean(coll);
       var pass = msg.pass;
-      db.collection("frontpage_lists").find({ _id: coll }, function(
+      db.collection("frontpage_lists").find({
+        _id: coll
+      }, function (
         err,
         frontpage_lists
       ) {
         if (frontpage_lists.length == 1) {
-          db.collection(coll + "_settings").find(function(err, docs) {
+          db.collection(coll + "_settings").find(function (err, docs) {
             if (
               docs.length == 0 ||
               (docs.length > 0 &&
@@ -134,16 +130,18 @@ function list(msg, guid, coll, offline, socket) {
                   Functions.getSession(socket),
                   msg.pass,
                   coll,
-                  function() {}
+                  function () {}
                 );
-                socket.emit("auth_accepted", { value: true });
+                socket.emit("auth_accepted", {
+                  value: true
+                });
               }
               if (docs.length > 0 && docs[0].userpass != pass) {
                 Functions.setSessionUserPass(
                   Functions.getSession(socket),
                   "",
                   coll,
-                  function() {}
+                  function () {}
                 );
               }
               if (
@@ -177,11 +175,13 @@ function list(msg, guid, coll, offline, socket) {
             }
           });
         } else {
-          db.createCollection(coll, function(err, docs) {
-            db.collection(coll).createIndex(
-              { id: 1 },
-              { unique: true },
-              function(e, d) {
+          db.createCollection(coll, function (err, docs) {
+            db.collection(coll).createIndex({
+                id: 1
+              }, {
+                unique: true
+              },
+              function (e, d) {
                 var configs = {
                   addsongs: false,
                   adminpass: "",
@@ -202,21 +202,20 @@ function list(msg, guid, coll, offline, socket) {
                   id: "config",
                   toggleChat: true
                 };
-                db.collection(coll + "_settings").insert(configs, function(
+                db.collection(coll + "_settings").insert(configs, function (
                   err,
                   docs
                 ) {
                   socket.join(coll);
                   send_list(coll, socket, true, false, true);
-                  db.collection("frontpage_lists").insert(
-                    {
+                  db.collection("frontpage_lists").insert({
                       _id: coll,
                       count: 0,
                       frontpage: true,
                       accessed: Functions.get_time(),
                       viewers: 1
                     },
-                    function(e, d) {}
+                    function (e, d) {}
                   );
                   Functions.check_inlist(
                     coll,
@@ -283,9 +282,8 @@ function skip(list, guid, coll, offline, socket, callback) {
         },
         userpass: {
           expected: "string",
-          got: list.hasOwnProperty("userpass")
-            ? typeof list.userpass
-            : undefined
+          got: list.hasOwnProperty("userpass") ?
+            typeof list.userpass : undefined
         },
         id: {
           expected: "string",
@@ -296,7 +294,7 @@ function skip(list, guid, coll, offline, socket, callback) {
       return;
     }
     list.id = list.id + "";
-    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function(
+    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
       adminpass
     ) {
@@ -318,7 +316,7 @@ function skip(list, guid, coll, offline, socket, callback) {
           .digest("base64");
       }
 
-      db.collection(coll + "_settings").find(function(_err, docs) {
+      db.collection(coll + "_settings").find(function (_err, docs) {
         if (
           docs.length > 0 &&
           (docs[0].userpass == undefined ||
@@ -343,14 +341,14 @@ function skip(list, guid, coll, offline, socket, callback) {
             video_id,
             coll,
             err == "5" ||
-              err == "100" ||
-              err == "101" ||
-              err == "150" ||
-              err == 5 ||
-              err == 100 ||
-              err == 101 ||
-              err == 150,
-            function(trueError) {
+            err == "100" ||
+            err == "101" ||
+            err == "150" ||
+            err == 5 ||
+            err == 100 ||
+            err == 101 ||
+            err == 150,
+            function (trueError) {
               var error = false;
               if (!trueError) {
                 adminpass = list.pass;
@@ -370,21 +368,23 @@ function skip(list, guid, coll, offline, socket, callback) {
                   (docs[0].adminpass == hash && docs[0].adminpass !== "") ||
                   error
                 ) {
-                  db.collection("frontpage_lists").find({ _id: coll }, function(
+                  db.collection("frontpage_lists").find({
+                    _id: coll
+                  }, function (
                     err,
                     frontpage_viewers
                   ) {
                     if (
                       error ||
                       ((strictSkip &&
-                        ((docs[0].adminpass == hash &&
-                          docs[0].adminpass !== "") ||
-                          docs[0].skips.length + 1 >= strictSkipNumber)) ||
+                          ((docs[0].adminpass == hash &&
+                              docs[0].adminpass !== "") ||
+                            docs[0].skips.length + 1 >= strictSkipNumber)) ||
                         (!strictSkip &&
                           ((frontpage_viewers[0].viewers / 2 <=
-                            docs[0].skips.length + 1 &&
-                            !Functions.contains(docs[0].skips, guid) &&
-                            frontpage_viewers[0].viewers != 2) ||
+                              docs[0].skips.length + 1 &&
+                              !Functions.contains(docs[0].skips, guid) &&
+                              frontpage_viewers[0].viewers != 2) ||
                             (frontpage_viewers[0].viewers == 2 &&
                               docs[0].skips.length + 1 == 2 &&
                               !Functions.contains(docs[0].skips, guid)) ||
@@ -400,16 +400,18 @@ function skip(list, guid, coll, offline, socket, callback) {
                         error,
                         true,
                         socket,
-                        function() {
+                        function () {
                           change_song(coll, error, video_id, docs);
                           socket.emit("toast", "skip");
-                          db.collection("user_names").find(
-                            { guid: guid },
-                            function(err, docs) {
+                          db.collection("user_names").find({
+                              guid: guid
+                            },
+                            function (err, docs) {
                               if (docs.length == 1) {
-                                db.collection("registered_users").find(
-                                  { _id: docs[0].name },
-                                  function(err, n) {
+                                db.collection("registered_users").find({
+                                    _id: docs[0].name
+                                  },
+                                  function (err, n) {
                                     var icon = false;
                                     if (n.length > 0 && n[0].icon) {
                                       icon = n[0].icon;
@@ -428,10 +430,14 @@ function skip(list, guid, coll, offline, socket, callback) {
                         "The channel is skipping too often, please wait "
                       );
                     } else if (!Functions.contains(docs[0].skips, guid)) {
-                      db.collection(coll + "_settings").update(
-                        { id: "config" },
-                        { $push: { skips: guid } },
-                        function(err, d) {
+                      db.collection(coll + "_settings").update({
+                          id: "config"
+                        }, {
+                          $push: {
+                            skips: guid
+                          }
+                        },
+                        function (err, d) {
                           if (
                             frontpage_viewers[0].viewers == 2 &&
                             !strictSkip
@@ -450,13 +456,15 @@ function skip(list, guid, coll, offline, socket, callback) {
                             "toast",
                             to_skip + " more are needed to skip!"
                           );
-                          db.collection("user_names").find(
-                            { guid: guid },
-                            function(err, docs) {
+                          db.collection("user_names").find({
+                              guid: guid
+                            },
+                            function (err, docs) {
                               if (docs.length == 1) {
-                                db.collection("registered_users").find(
-                                  { _id: docs[0].name },
-                                  function(err, n) {
+                                db.collection("registered_users").find({
+                                    _id: docs[0].name
+                                  },
+                                  function (err, n) {
                                     var icon = false;
                                     if (n.length > 0 && n[0].icon) {
                                       icon = n[0].icon;
@@ -503,8 +511,7 @@ function change_song(coll, error, id, conf, callback, socket) {
   var startTime = conf[0].startTime;
   if (conf !== null && conf.length !== 0) {
     db.collection(coll).aggregate(
-      [
-        {
+      [{
           $match: {
             views: {
               $exists: false
@@ -526,7 +533,7 @@ function change_song(coll, error, id, conf, callback, socket) {
           $limit: 2
         }
       ],
-      function(err, now_playing_doc) {
+      function (err, now_playing_doc) {
         if (now_playing_doc.length == 0) {
           console.log("empty list", coll, callback, id, conf);
         }
@@ -535,7 +542,10 @@ function change_song(coll, error, id, conf, callback, socket) {
           ((id && id == now_playing_doc[0].id) || !id)
         ) {
           if (error) {
-            db.collection(coll).remove({ now_playing: true, id: id }, function(
+            db.collection(coll).remove({
+              now_playing: true,
+              id: id
+            }, function (
               err,
               docs
             ) {
@@ -551,19 +561,30 @@ function change_song(coll, error, id, conf, callback, socket) {
                 });
               }
               if (docs.deletedCount == 1) {
-                db.collection("frontpage_lists").update(
-                  { _id: coll, count: { $gt: 0 } },
-                  {
-                    $inc: { count: -1 },
-                    $set: { accessed: Functions.get_time() }
+                db.collection("frontpage_lists").update({
+                    _id: coll,
+                    count: {
+                      $gt: 0
+                    }
+                  }, {
+                    $inc: {
+                      count: -1
+                    },
+                    $set: {
+                      accessed: Functions.get_time()
+                    }
+                  }, {
+                    upsert: true
                   },
-                  { upsert: true },
-                  function(err, docs) {}
+                  function (err, docs) {}
                 );
               }
             });
           } else if (conf[0].removeplay === true) {
-            db.collection(coll).remove({ now_playing: true, id: id }, function(
+            db.collection(coll).remove({
+              now_playing: true,
+              id: id
+            }, function (
               err,
               docs
             ) {
@@ -579,14 +600,22 @@ function change_song(coll, error, id, conf, callback, socket) {
                 });
               }
               if (docs.deletedCount == 1) {
-                db.collection("frontpage_lists").update(
-                  { _id: coll, count: { $gt: 0 } },
-                  {
-                    $inc: { count: -1 },
-                    $set: { accessed: Functions.get_time() }
+                db.collection("frontpage_lists").update({
+                    _id: coll,
+                    count: {
+                      $gt: 0
+                    }
+                  }, {
+                    $inc: {
+                      count: -1
+                    },
+                    $set: {
+                      accessed: Functions.get_time()
+                    }
+                  }, {
+                    upsert: true
                   },
-                  { upsert: true },
-                  function(err, docs) {}
+                  function (err, docs) {}
                 );
               }
             });
@@ -596,17 +625,19 @@ function change_song(coll, error, id, conf, callback, socket) {
                 conf[0].skipped_time != Functions.get_time()) ||
               conf[0].skipped_time == undefined
             ) {
-              db.collection(coll).update(
-                { now_playing: true, id: id },
-                {
+              db.collection(coll).update({
+                  now_playing: true,
+                  id: id
+                }, {
                   $set: {
                     now_playing: false,
                     votes: 0,
                     guids: []
                   }
+                }, {
+                  multi: true
                 },
-                { multi: true },
-                function(err, docs) {
+                function (err, docs) {
                   var next_song;
                   if (now_playing_doc.length == 2)
                     next_song = now_playing_doc[1].id;
@@ -629,10 +660,14 @@ function change_song(coll, error, id, conf, callback, socket) {
             now_playing_doc.length > 1 &&
             now_playing_doc[1].id == id
           ) {
-            db.collection(coll).update(
-              { id: now_playing_doc[0].id },
-              { $set: { now_playing: false } },
-              function(e, d) {
+            db.collection(coll).update({
+                id: now_playing_doc[0].id
+              }, {
+                $set: {
+                  now_playing: false
+                }
+              },
+              function (e, d) {
                 change_song(coll, error, id, conf, callback, socket, error);
               }
             );
@@ -649,8 +684,7 @@ function change_song(coll, error, id, conf, callback, socket) {
 function change_song_post(coll, next_song, conf, callback, socket, removed) {
   //coll = coll.replace(/ /g,'');
   db.collection(coll).aggregate(
-    [
-      {
+    [{
         $match: {
           now_playing: false,
           type: {
@@ -669,7 +703,7 @@ function change_song_post(coll, next_song, conf, callback, socket, removed) {
         $limit: 2
       }
     ],
-    function(err, docs) {
+    function (err, docs) {
       if (docs !== null && docs.length > 0) {
         var id = docs[0].id;
         if (next_song && next_song != id) {
@@ -679,9 +713,10 @@ function change_song_post(coll, next_song, conf, callback, socket, removed) {
             return;
           }
         }
-        db.collection(coll).update(
-          { id: id, now_playing: false },
-          {
+        db.collection(coll).update({
+            id: id,
+            now_playing: false
+          }, {
             $set: {
               now_playing: true,
               votes: 0,
@@ -689,7 +724,7 @@ function change_song_post(coll, next_song, conf, callback, socket, removed) {
               added: Functions.get_time()
             }
           },
-          function(err, returnDocs) {
+          function (err, returnDocs) {
             if (
               (returnDocs.hasOwnProperty("nModified") &&
                 returnDocs.nModified == 0) ||
@@ -699,15 +734,15 @@ function change_song_post(coll, next_song, conf, callback, socket, removed) {
               callback();
               return;
             }
-            db.collection(coll + "_settings").update(
-              { id: "config" },
-              {
+            db.collection(coll + "_settings").update({
+                id: "config"
+              }, {
                 $set: {
                   startTime: Functions.get_time(),
                   skips: []
                 }
               },
-              function(err, returnDocs) {
+              function (err, returnDocs) {
                 //db.collection(coll + "_settings").find({id: "config"}, function(err, conf){
                 if (!callback) {
                   io.to(coll).emit("channel", {
@@ -756,8 +791,7 @@ function change_song_post(coll, next_song, conf, callback, socket, removed) {
 function send_list(coll, socket, send, list_send, configs, shuffled) {
   //coll = coll.replace(/ /g,'');
   db.collection(coll + "_settings").aggregate(
-    [
-      {
+    [{
         $match: {
           id: "config"
         }
@@ -766,7 +800,7 @@ function send_list(coll, socket, send, list_send, configs, shuffled) {
         $project: projects.toShowConfig
       }
     ],
-    function(err, _conf) {
+    function (err, _conf) {
       var conf = _conf;
       if (conf.length == 0) {
         var conf = {
@@ -789,38 +823,50 @@ function send_list(coll, socket, send, list_send, configs, shuffled) {
           toggleChat: true,
           userpass: ""
         };
-        db.collection(coll + "_settings").update(
-          { id: "config" },
-          conf,
-          { upsert: true },
-          function(err, docs) {
+        db.collection(coll + "_settings").update({
+            id: "config"
+          },
+          conf, {
+            upsert: true
+          },
+          function (err, docs) {
             send_list(coll, socket, send, list_send, configs, shuffled);
           }
         );
       } else {
         db.collection(coll).aggregate(
-          [
-            {
-              $match: { type: { $ne: "suggested" } }
+          [{
+              $match: {
+                type: {
+                  $ne: "suggested"
+                }
+              }
             },
             {
               $project: projects.project_object
             },
-            { $sort: { now_playing: -1, votes: -1, added: 1 } }
+            {
+              $sort: {
+                now_playing: -1,
+                votes: -1,
+                added: 1
+              }
+            }
           ],
-          function(
+          function (
             err,
             docs //db.collection(coll).find({type: {$ne: "suggested"}}, function(err, docs)
           ) {
             if (docs.length > 0) {
-              db.collection(coll).find({ now_playing: true }, function(
+              db.collection(coll).find({
+                now_playing: true
+              }, function (
                 err,
                 np_docs
               ) {
                 if (np_docs.length == 0) {
                   db.collection(coll).aggregate(
-                    [
-                      {
+                    [{
                         $match: {
                           views: {
                             $exists: false
@@ -842,11 +888,12 @@ function send_list(coll, socket, send, list_send, configs, shuffled) {
                         $limit: 1
                       }
                     ],
-                    function(err, now_playing_doc) {
+                    function (err, now_playing_doc) {
                       if (now_playing_doc[0].now_playing == false) {
-                        db.collection(coll).update(
-                          { id: now_playing_doc[0].id, now_playing: false },
-                          {
+                        db.collection(coll).update({
+                            id: now_playing_doc[0].id,
+                            now_playing: false
+                          }, {
                             $set: {
                               now_playing: true,
                               votes: 0,
@@ -854,16 +901,16 @@ function send_list(coll, socket, send, list_send, configs, shuffled) {
                               added: Functions.get_time()
                             }
                           },
-                          function(err, returnDocs) {
-                            db.collection(coll + "_settings").update(
-                              { id: "config" },
-                              {
+                          function (err, returnDocs) {
+                            db.collection(coll + "_settings").update({
+                                id: "config"
+                              }, {
                                 $set: {
                                   startTime: Functions.get_time(),
                                   skips: []
                                 }
                               },
-                              function(err, returnDocs) {
+                              function (err, returnDocs) {
                                 Frontpage.update_frontpage(
                                   coll,
                                   now_playing_doc[0].id,
@@ -888,8 +935,7 @@ function send_list(coll, socket, send, list_send, configs, shuffled) {
                   );
                 } else if (np_docs.length > 1) {
                   db.collection(coll).aggregate(
-                    [
-                      {
+                    [{
                         $match: {
                           now_playing: true
                         }
@@ -903,13 +949,21 @@ function send_list(coll, socket, send, list_send, configs, shuffled) {
                         }
                       }
                     ],
-                    function(e, docs) {
+                    function (e, docs) {
                       var real_now_playing = docs[docs.length - 1];
-                      db.collection(coll).update(
-                        { now_playing: true, id: { $ne: real_now_playing.id } },
-                        { $set: { now_playing: false } },
-                        { multi: true },
-                        function(e, d) {
+                      db.collection(coll).update({
+                          now_playing: true,
+                          id: {
+                            $ne: real_now_playing.id
+                          }
+                        }, {
+                          $set: {
+                            now_playing: false
+                          }
+                        }, {
+                          multi: true
+                        },
+                        function (e, d) {
                           send_list(
                             coll,
                             socket,
@@ -932,7 +986,7 @@ function send_list(coll, socket, send, list_send, configs, shuffled) {
                       false,
                       np_docs[0].id,
                       conf,
-                      function() {
+                      function () {
                         send_list(
                           coll,
                           socket,
@@ -1013,11 +1067,13 @@ function send_list(coll, socket, send, list_send, configs, shuffled) {
               desc: "",
               userpass: ""
             };
-            db.collection(coll + "_settings").update(
-              { id: "config" },
-              conf,
-              { upsert: true },
-              function(err, docs) {
+            db.collection(coll + "_settings").update({
+                id: "config"
+              },
+              conf, {
+                upsert: true
+              },
+              function (err, docs) {
                 io.to(coll).emit("conf", conf);
               }
             );
@@ -1028,8 +1084,12 @@ function send_list(coll, socket, send, list_send, configs, shuffled) {
   );
   if (socket) {
     db.collection(coll)
-      .find({ type: "suggested" })
-      .sort({ added: 1 }, function(err, sugg) {
+      .find({
+        type: "suggested"
+      })
+      .sort({
+        added: 1
+      }, function (err, sugg) {
         socket.emit("suggested", sugg);
       });
   }
@@ -1068,14 +1128,14 @@ function end(obj, coll, guid, offline, socket) {
     }
     obj.id = obj.id + "";
     id = id + "";
-    var callback_function = function() {
+    var callback_function = function () {
       for (var i = 0; i < arguments.length; i++) {
         if (typeof arguments[i] == "function") {
           arguments[i]();
         }
       }
     };
-    db.collection(coll + "_settings").find(function(err, docs) {
+    db.collection(coll + "_settings").find(function (err, docs) {
       var authentication_needed = false;
       if (
         docs.length > 0 &&
@@ -1084,7 +1144,7 @@ function end(obj, coll, guid, offline, socket) {
         callback_function = Functions.getSessionAdminUser;
         authentication_needed = true;
       }
-      callback_function(Functions.getSession(socket), coll, function(userpass) {
+      callback_function(Functions.getSession(socket), coll, function (userpass) {
         if (userpass != "" || obj.pass == undefined) {
           obj.pass = userpass;
         } else {
@@ -1107,7 +1167,9 @@ function end(obj, coll, guid, offline, socket) {
             undefined,
             "place 13"
           );
-          db.collection(coll).find({ now_playing: true }, function(err, np) {
+          db.collection(coll).find({
+            now_playing: true
+          }, function (err, np) {
             if (err !== null) console.log(err);
             if (
               np !== null &&
@@ -1142,8 +1204,10 @@ function end(obj, coll, guid, offline, socket) {
 
 function send_play(coll, socket, broadcast) {
   //coll = coll.replace(/ /g,'');
-  db.collection(coll).find({ now_playing: true }, function(err, np) {
-    db.collection(coll + "_settings").find(function(err, conf) {
+  db.collection(coll).find({
+    now_playing: true
+  }, function (err, np) {
+    db.collection(coll + "_settings").find(function (err, conf) {
       if (err !== null) console.log(err);
       try {
         if (Functions.get_time() - conf[0].startTime > np[0].duration) {
@@ -1155,7 +1219,11 @@ function send_play(coll, socket, broadcast) {
           else conf[0].userpass = false;
           if (!np.hasOwnProperty("start")) np.start = 0;
           if (!np.hasOwnProperty("end")) np.end = np.duration;
-          toSend = { np: np, conf: conf, time: Functions.get_time() };
+          toSend = {
+            np: np,
+            conf: conf,
+            time: Functions.get_time()
+          };
           if (socket === undefined) {
             io.to(coll).emit("np", toSend);
             //
@@ -1200,25 +1268,35 @@ function sendColor(coll, socket, url, ajax, res) {
   //var url = 'https://img.youtube.com/vi/'+id+'/mqdefault.jpg';
 
   Jimp.read(url)
-    .then(function(image) {
+    .then(function (image) {
       var c = ColorThief.getColor(image);
       if (ajax) {
-        res.header({ "Content-Type": "application/json" });
+        res.header({
+          "Content-Type": "application/json"
+        });
         res.status(200).send(c);
         return;
       } else {
         if (socket) {
-          socket.emit("color", { color: c, only: true });
+          socket.emit("color", {
+            color: c,
+            only: true
+          });
         } else {
-          io.to(coll).emit("color", { color: c, only: false });
+          io.to(coll).emit("color", {
+            color: c,
+            only: false
+          });
         }
       }
     })
-    .catch(function(err) {
+    .catch(function (err) {
       console.log("Crashed on fetching image, url is " + url);
       console.log("Is ajax: " + ajax);
       if (ajax) {
-        res.header({ "Content-Type": "application/json" });
+        res.header({
+          "Content-Type": "application/json"
+        });
         res.status(404);
         return;
       }
@@ -1228,8 +1306,7 @@ function sendColor(coll, socket, url, ajax, res) {
 function getNextSong(coll, socket, callback) {
   //coll = coll.replace(/ /g,'');
   db.collection(coll).aggregate(
-    [
-      {
+    [{
         $match: {
           views: {
             $exists: false
@@ -1251,7 +1328,7 @@ function getNextSong(coll, socket, callback) {
         $limit: 1
       }
     ],
-    function(err, doc) {
+    function (err, doc) {
       if (doc.length == 1) {
         var thumbnail = "";
         var source = "youtube";

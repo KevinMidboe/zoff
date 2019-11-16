@@ -18,7 +18,9 @@ var crypto = require("crypto");
 var db = require(pathThumbnails + "/handlers/db.js");
 var uniqid = require("uniqid");
 var Filter = require("bad-words");
-var filter = new Filter({ placeHolder: "x" });
+var filter = new Filter({
+  placeHolder: "x"
+});
 
 var Chat = require(pathThumbnails + "/handlers/chat.js");
 
@@ -42,10 +44,14 @@ function decodeChannelName(str) {
 }
 
 function remove_unique_id(short_id) {
-  db.collection("unique_ids").update(
-    { _id: "unique_ids" },
-    { $pull: { unique_ids: short_id } },
-    function(err, docs) {}
+  db.collection("unique_ids").update({
+      _id: "unique_ids"
+    }, {
+      $pull: {
+        unique_ids: short_id
+      }
+    },
+    function (err, docs) {}
   );
 }
 
@@ -53,21 +59,31 @@ function remove_name_from_db(guid, channel) {
   // Use temporary, with caution. Can bottleneck in large quantity of users.
   //
   // Find a way of indexing users in lists in a clever way, to avoid the search here
-  db.collection("connected_users").find({ _id: "total_users" }, function(
+  db.collection("connected_users").find({
+    _id: "total_users"
+  }, function (
     err,
     all_users
   ) {
-    var hasOne = all_users[0].total_users.some(function(v) {
+    var hasOne = all_users[0].total_users.some(function (v) {
       return v.indexOf(guid) >= 0;
     });
     if (!hasOne) {
-      db.collection("user_names").find({ guid: guid }, function(err, user) {
+      db.collection("user_names").find({
+        guid: guid
+      }, function (err, user) {
         if (user.length == 1) {
-          db.collection("user_names").update(
-            { _id: "all_names" },
-            { $pull: { names: user[0].name } },
-            function(err, updated) {
-              db.collection("user_names").remove({ guid: guid }, function(
+          db.collection("user_names").update({
+              _id: "all_names"
+            }, {
+              $pull: {
+                names: user[0].name
+              }
+            },
+            function (err, updated) {
+              db.collection("user_names").remove({
+                guid: guid
+              }, function (
                 err,
                 removed
               ) {});
@@ -77,10 +93,14 @@ function remove_name_from_db(guid, channel) {
       });
     } else {
       if (channel == undefined || channel == "") return;
-      db.collection("user_names").update(
-        { guid: guid },
-        { $pull: { channels: channel } },
-        function(err, docs) {
+      db.collection("user_names").update({
+          guid: guid
+        }, {
+          $pull: {
+            channels: channel
+          }
+        },
+        function (err, docs) {
           //console.log("Pulled user from current channel");
         }
       );
@@ -91,15 +111,15 @@ function remove_name_from_db(guid, channel) {
 function isUrl(str) {
   var pattern = new RegExp(
     "\\b(((ht|f)tp(s?)\\:\\/\\/|~\\/|\\/)|www.)" +
-      "(\\w+:\\w+@)?(([-\\w]+\\.)+(com|org|net|gov" +
-      "|mil|biz|info|mobi|name|aero|jobs|museum" +
-      "|travel|[a-z]{2}))(:[\\d]{1,5})?" +
-      "(((\\/([-\\w~!$+|.,=]|%[a-f\\d]{2})+)+|\\/)+|\\?|#)?" +
-      "((\\?([-\\w~!$+|.,*:]|%[a-f\\d{2}])+=?" +
-      "([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)" +
-      "(&(?:[-\\w~!$+|.,*:]|%[a-f\\d{2}])+=?" +
-      "([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)*)*" +
-      "(#([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)?\\b"
+    "(\\w+:\\w+@)?(([-\\w]+\\.)+(com|org|net|gov" +
+    "|mil|biz|info|mobi|name|aero|jobs|museum" +
+    "|travel|[a-z]{2}))(:[\\d]{1,5})?" +
+    "(((\\/([-\\w~!$+|.,=]|%[a-f\\d]{2})+)+|\\/)+|\\?|#)?" +
+    "((\\?([-\\w~!$+|.,*:]|%[a-f\\d{2}])+=?" +
+    "([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)" +
+    "(&(?:[-\\w~!$+|.,*:]|%[a-f\\d{2}])+=?" +
+    "([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)*)*" +
+    "(#([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)?\\b"
   );
   if (!pattern.test(str)) {
     return false;
@@ -120,8 +140,8 @@ function getSession(socket) {
     // Returning "sessiong"-based on place of connection
     return hash_pass(
       socket.handshake.headers["user-agent"] +
-        socket.handshake.address +
-        socket.handshake.headers["accept-language"]
+      socket.handshake.address +
+      socket.handshake.headers["accept-language"]
     );
     //return "empty";
   }
@@ -136,10 +156,15 @@ function remove_from_array(array, element) {
 
 function generate_channel_name(res) {
   var trying_id = uniqid.time().toLowerCase();
-  db.collection("frontpage_lists").find(
-    { frontpage: { $exists: true }, _id: trying_id },
-    { _id: 1 },
-    function(err, docs) {
+  db.collection("frontpage_lists").find({
+      frontpage: {
+        $exists: true
+      },
+      _id: trying_id
+    }, {
+      _id: 1
+    },
+    function (err, docs) {
       if (docs.length == 0) {
         res.send(trying_id);
         return;
@@ -163,20 +188,31 @@ function check_inlist(coll, guid, socket, offline, callback, double_check) {
   }
   //coll = coll.replace(/ /g,'');
   if (!offline && coll != undefined) {
-    db.collection("connected_users").update(
-      { _id: coll },
-      { $addToSet: { users: guid } },
-      { upsert: true },
-      function(err, updated) {
+    db.collection("connected_users").update({
+        _id: coll
+      }, {
+        $addToSet: {
+          users: guid
+        }
+      }, {
+        upsert: true
+      },
+      function (err, updated) {
         if (updated.nModified > 0 || updated.upserted != undefined) {
-          db.collection("connected_users").find({ _id: coll }, function(
+          db.collection("connected_users").find({
+            _id: coll
+          }, function (
             err,
             new_doc
           ) {
-            db.collection("frontpage_lists").update(
-              { _id: coll },
-              { $set: { viewers: new_doc[0].users.length } },
-              function() {
+            db.collection("frontpage_lists").update({
+                _id: coll
+              }, {
+                $set: {
+                  viewers: new_doc[0].users.length
+                }
+              },
+              function () {
                 if (
                   new_doc[0].users == undefined ||
                   new_doc[0].users.length == undefined
@@ -185,23 +221,32 @@ function check_inlist(coll, guid, socket, offline, callback, double_check) {
                 } else {
                   io.to(coll).emit("viewers", new_doc[0].users.length);
                 }
-                Chat.namechange(
-                  { initial: true, first: true, channel: coll },
+                Chat.namechange({
+                    initial: true,
+                    first: true,
+                    channel: coll
+                  },
                   guid,
                   socket,
                   false,
-                  function(enabled) {
-                    db.collection("user_names").find({ guid: guid }, function(
+                  function (enabled) {
+                    db.collection("user_names").find({
+                      guid: guid
+                    }, function (
                       err,
                       docs
                     ) {
                       if (docs.length == 1) {
                         var icon = "";
                         if (docs[0].icon != undefined) icon = docs[0].icon;
-                        db.collection("user_names").update(
-                          { guid: guid },
-                          { $addToSet: { channels: coll } },
-                          function(err, doc) {}
+                        db.collection("user_names").update({
+                            guid: guid
+                          }, {
+                            $addToSet: {
+                              channels: coll
+                            }
+                          },
+                          function (err, doc) {}
                         );
                         if (enabled) {
                           socket.broadcast.to(coll).emit("chat", {
@@ -222,10 +267,14 @@ function check_inlist(coll, guid, socket, offline, callback, double_check) {
                         });
                       }
                     });
-                    db.collection("connected_users").update(
-                      { _id: "total_users" },
-                      { $addToSet: { total_users: guid + coll } },
-                      function(err, docs) {
+                    db.collection("connected_users").update({
+                        _id: "total_users"
+                      }, {
+                        $addToSet: {
+                          total_users: guid + coll
+                        }
+                      },
+                      function (err, docs) {
                         if (
                           callback != undefined &&
                           typeof callback == "function"
@@ -239,7 +288,9 @@ function check_inlist(coll, guid, socket, offline, callback, double_check) {
             );
           });
         } else {
-          db.collection("connected_users").find({ _id: coll }, function(
+          db.collection("connected_users").find({
+            _id: coll
+          }, function (
             err,
             new_doc
           ) {
@@ -252,24 +303,36 @@ function check_inlist(coll, guid, socket, offline, callback, double_check) {
     );
   } else {
     if (offline) {
-      db.collection("connected_users").update(
-        { _id: "offline_users" },
-        { $addToSet: { users: guid } },
-        function(err, docs) {}
+      db.collection("connected_users").update({
+          _id: "offline_users"
+        }, {
+          $addToSet: {
+            users: guid
+          }
+        },
+        function (err, docs) {}
       );
     } else {
-      db.collection("connected_users").update(
-        { _id: coll },
-        { $addToSet: { users: guid } },
-        function(err, docs) {}
+      db.collection("connected_users").update({
+          _id: coll
+        }, {
+          $addToSet: {
+            users: guid
+          }
+        },
+        function (err, docs) {}
       );
     }
     //
     if (coll != undefined && coll != "") {
-      db.collection("connected_users").update(
-        { _id: "total_users" },
-        { $addToSet: { total_users: guid + coll } },
-        function(err, docs) {}
+      db.collection("connected_users").update({
+          _id: "total_users"
+        }, {
+          $addToSet: {
+            total_users: guid + coll
+          }
+        },
+        function (err, docs) {}
       );
     }
     if (callback != undefined && typeof callback == "function") callback();
@@ -372,11 +435,16 @@ function setSessionAdminPass(id, adminpass, list, callback) {
 
     connected_db
       .collection(id)
-      .update(
-        { _id: list },
-        { $set: { adminpass: hash_pass(decrypt_string(adminpass), true) } },
-        { upsert: true },
-        function(e, d) {
+      .update({
+          _id: list
+        }, {
+          $set: {
+            adminpass: hash_pass(decrypt_string(adminpass), true)
+          }
+        }, {
+          upsert: true
+        },
+        function (e, d) {
           callback();
           return;
         }
@@ -392,11 +460,17 @@ function setSessionChatPass(id, name, pass, callback) {
     }
     connected_db
       .collection(id)
-      .update(
-        { _id: "_chat_" },
-        { $set: { password: pass, name: name } },
-        { upsert: true },
-        function(e) {
+      .update({
+          _id: "_chat_"
+        }, {
+          $set: {
+            password: pass,
+            name: name
+          }
+        }, {
+          upsert: true
+        },
+        function (e) {
           callback();
           return;
         }
@@ -414,7 +488,9 @@ function getSessionChatPass(id, callback) {
       return;
     }
 
-    connected_db.collection(id).find({ _id: "_chat_" }, function(e, d) {
+    connected_db.collection(id).find({
+      _id: "_chat_"
+    }, function (e, d) {
       if (d.length > 0) {
         var name = "";
         var pass = "";
@@ -446,11 +522,15 @@ function setChromecastHost(id, other_id, list, callback) {
     }
     connected_db
       .collection(id)
-      .update(
-        { _id: list },
-        { chromecast: true, id: other_id },
-        { upsert: true },
-        function(e, docs) {
+      .update({
+          _id: list
+        }, {
+          chromecast: true,
+          id: other_id
+        }, {
+          upsert: true
+        },
+        function (e, docs) {
           callback(true);
           return;
         }
@@ -469,11 +549,16 @@ function setSessionUserPass(id, userpass, list, callback) {
 
     connected_db
       .collection(id)
-      .update(
-        { _id: list },
-        { $set: { userpass: userpass } },
-        { upsert: true },
-        function(e, d) {
+      .update({
+          _id: list
+        }, {
+          $set: {
+            userpass: userpass
+          }
+        }, {
+          upsert: true
+        },
+        function (e, d) {
           callback();
           return;
         }
@@ -489,7 +574,9 @@ function getSessionAdminUser(id, list, callback) {
       callback("", "", false);
       return;
     }
-    connected_db.collection(id).find({ _id: list }, function(e, d) {
+    connected_db.collection(id).find({
+      _id: list
+    }, function (e, d) {
       var userpass = "";
       var adminpass = "";
       if (d.length > 0) {
@@ -514,7 +601,9 @@ function removeSessionChatPass(id, callback) {
     callback();
     return;
   }
-  connected_db.collection(id).remove({ _id: "_chat_" }, function() {
+  connected_db.collection(id).remove({
+    _id: "_chat_"
+  }, function () {
     callback();
     return;
   });
@@ -527,17 +616,27 @@ function removeSessionAdminPass(id, channel, callback) {
   }
   connected_db
     .collection(id)
-    .update({ _id: channel }, { $set: { adminpass: "" } }, function() {
+    .update({
+      _id: channel
+    }, {
+      $set: {
+        adminpass: ""
+      }
+    }, function () {
       callback();
       return;
     });
 }
 
 function remove_from_chat_channel(coll, guid) {
-  db.collection("user_names").update(
-    { guid: guid },
-    { $pull: { channels: coll } },
-    function(err, docs) {}
+  db.collection("user_names").update({
+      guid: guid
+    }, {
+      $pull: {
+        channels: coll
+      }
+    },
+    function (err, docs) {}
   );
 }
 
@@ -551,25 +650,44 @@ function left_channel(coll, guid, short_id, in_list, socket, change, caller) {
     return;
   }
   //coll = coll.replace(/ /g,'');
-  db.collection("connected_users").update(
-    { _id: coll },
-    { $pull: { users: guid } },
-    function(err, updated) {
+  db.collection("connected_users").update({
+      _id: coll
+    }, {
+      $pull: {
+        users: guid
+      }
+    },
+    function (err, updated) {
       if (updated.nModified > 0) {
-        db.collection("connected_users").update(
-          { _id: "total_users" },
-          { $pull: { total_users: guid + coll } },
-          function(err, updated) {}
+        db.collection("connected_users").update({
+            _id: "total_users"
+          }, {
+            $pull: {
+              total_users: guid + coll
+            }
+          },
+          function (err, updated) {}
         );
-        db.collection("connected_users").find({ _id: coll }, function(
+        db.collection("connected_users").find({
+          _id: coll
+        }, function (
           err,
           new_doc
         ) {
-          db.collection("frontpage_lists").update(
-            { _id: coll, viewers: { $gt: 0 } },
-            { $inc: { viewers: -1 } },
-            function(err, doc) {
-              db.collection("user_names").find({ guid: guid }, function(
+          db.collection("frontpage_lists").update({
+              _id: coll,
+              viewers: {
+                $gt: 0
+              }
+            }, {
+              $inc: {
+                viewers: -1
+              }
+            },
+            function (err, doc) {
+              db.collection("user_names").find({
+                guid: guid
+              }, function (
                 err,
                 docs
               ) {
@@ -594,15 +712,23 @@ function left_channel(coll, guid, short_id, in_list, socket, change, caller) {
           );
         });
       } else {
-        db.collection("connected_users").update(
-          { _id: "offline_users" },
-          { $pull: { users: guid } },
-          function(err, updated) {
+        db.collection("connected_users").update({
+            _id: "offline_users"
+          }, {
+            $pull: {
+              users: guid
+            }
+          },
+          function (err, updated) {
             //if(updated.nModified > 0) {
-            db.collection("connected_users").update(
-              { _id: "total_users" },
-              { $pull: { total_users: guid + coll } },
-              function(err, updated) {}
+            db.collection("connected_users").update({
+                _id: "total_users"
+              }, {
+                $pull: {
+                  total_users: guid + coll
+                }
+              },
+              function (err, updated) {}
             );
             if (!change) {
               remove_name_from_db(guid, coll);
@@ -634,12 +760,11 @@ function checkTimeout(
     callback();
     return;
   }
-  db.collection("timeout_api").find(
-    {
+  db.collection("timeout_api").find({
       type: type,
       guid: guid
     },
-    function(err, docs) {
+    function (err, docs) {
       if (docs.length > 0) {
         var date = new Date(docs[0].createdAt);
         date.setSeconds(date.getSeconds() + timeout);
@@ -663,17 +788,19 @@ function checkTimeout(
         }
       }
       var now_date = new Date();
-      db.collection("timeout_api").update(
-        { type: type, guid: guid },
-        {
+      db.collection("timeout_api").update({
+          type: type,
+          guid: guid
+        }, {
           $set: {
             createdAt: now_date,
             type: type,
             guid: guid
           }
+        }, {
+          upsert: true
         },
-        { upsert: true },
-        function(err, docs) {
+        function (err, docs) {
           callback();
           return;
         }

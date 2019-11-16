@@ -1,12 +1,5 @@
 var Functions = require(pathThumbnails + "/handlers/functions.js");
 var crypto = require("crypto");
-var Filter = require("bad-words");
-var filter = new Filter({ placeHolder: "x" });
-/*var filter = {
-clean: function(str) {
-return str;
-}
-}*/
 var db = require(pathThumbnails + "/handlers/db.js");
 
 function get_history(channel, all, socket) {
@@ -27,7 +20,7 @@ function get_history(channel, all, socket) {
     Functions.getSessionAdminUser(
       Functions.getSession(socket),
       channel,
-      function(userpass) {
+      function (userpass) {
         if (userpass != "" || pass == undefined) {
           pass = userpass;
         } else {
@@ -36,7 +29,9 @@ function get_history(channel, all, socket) {
             .update(Functions.decrypt_string(pass))
             .digest("base64");
         }
-        db.collection(channel + "_settings").find({ id: "config" }, function(
+        db.collection(channel + "_settings").find({
+          id: "config"
+        }, function (
           err,
           conf
         ) {
@@ -65,14 +60,21 @@ function getAndSendLogs(channel, all, socket, pass, query) {
       icon: 1,
       _id: 0
     })
-    .sort({ createdAt: 1 })
-    .limit(20, function(err, docs) {
-      socket.emit("chat_history", { all: all, data: docs });
+    .sort({
+      createdAt: 1
+    })
+    .limit(20, function (err, docs) {
+      socket.emit("chat_history", {
+        all: all,
+        data: docs
+      });
     });
 }
 
 function getUserNameByGuid(guid, callback) {
-  db.collection("user_names").find({ guid: guid }, function(err, usernames) {
+  db.collection("user_names").find({
+    guid: guid
+  }, function (err, usernames) {
     if (usernames.length == 1) {
       callback(usernames[0].name);
       return;
@@ -110,8 +112,8 @@ function chat(msg, guid, offline, socket) {
   coll = Functions.removeEmojis(coll).toLowerCase();
   //coll = filter.clean(coll);
 
-  checkIfUserIsBanned(coll, socket, guid, function() {
-    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function(
+  checkIfUserIsBanned(coll, socket, guid, function () {
+    Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
       adminpass
     ) {
@@ -123,7 +125,7 @@ function chat(msg, guid, offline, socket) {
           .update(Functions.decrypt_string(msg.pass))
           .digest("base64");
       }
-      db.collection(coll + "_settings").find(function(err, conf) {
+      db.collection(coll + "_settings").find(function (err, conf) {
         if (
           conf.length > 0 &&
           (conf[0].hasOwnProperty("toggleChat") && !conf[0].toggleChat)
@@ -147,18 +149,18 @@ function chat(msg, guid, offline, socket) {
             guid,
             socket,
             offline,
-            function() {
+            function () {
               if (data == "/who") {
                 db.collection("user_names").distinct(
-                  "name",
-                  { channels: coll },
-                  function(err, docs) {
+                  "name", {
+                    channels: coll
+                  },
+                  function (err, docs) {
                     var userAdd = "s";
                     if (docs.length == 1) userAdd = "";
                     socket.emit("chat", {
                       from: "System",
-                      msg:
-                        ": User" +
+                      msg: ": User" +
                         userAdd +
                         " in channel are: " +
                         docs.join(", "),
@@ -173,7 +175,9 @@ function chat(msg, guid, offline, socket) {
                 data.length < 151 &&
                 data.replace(/\s/g, "").length
               ) {
-                db.collection("user_names").find({ guid: guid }, function(
+                db.collection("user_names").find({
+                  guid: guid
+                }, function (
                   err,
                   docs
                 ) {
@@ -186,9 +190,10 @@ function chat(msg, guid, offline, socket) {
                       if (splitData[1].length > 0) {
                         var passToCompare = Functions.hash_pass(adminpass);
                         if (passToCompare == conf[0].adminpass) {
-                          db.collection("user_names").find(
-                            { name: splitData[1] },
-                            function(err, name) {
+                          db.collection("user_names").find({
+                              name: splitData[1]
+                            },
+                            function (err, name) {
                               if (name.length == 1) {
                                 if (
                                   data.startsWith("/ban") &&
@@ -200,36 +205,31 @@ function chat(msg, guid, offline, socket) {
                                   var connection_id = name[0].connection_id;
                                   var yourSelf = Functions.hash_pass(
                                     socket.handshake.headers["user-agent"] +
-                                      socket.handshake.address +
-                                      socket.handshake.headers[
-                                        "accept-language"
-                                      ]
+                                    socket.handshake.address +
+                                    socket.handshake.headers[
+                                      "accept-language"
+                                    ]
                                   );
                                   if (connection_id != yourSelf) {
-                                    db.collection(coll + "_banned_chat").update(
-                                      {
+                                    db.collection(coll + "_banned_chat").update({
                                         connection_id: connection_id
-                                      },
-                                      {
+                                      }, {
                                         connection_id: connection_id,
                                         by: docs[0].name,
                                         reason: reason
-                                      },
-                                      {
+                                      }, {
                                         upsert: true
                                       },
-                                      function(err, results) {
+                                      function (err, results) {
                                         io.to(coll).emit("chat", {
                                           from: "System",
-                                          msg:
-                                            ": " +
+                                          msg: ": " +
                                             docs[0].name +
                                             " has banned " +
                                             splitData[1] +
                                             " for: " +
                                             reason,
-                                          icon:
-                                            "https://zoff.me/assets/images/favicon-32x32.png"
+                                          icon: "https://zoff.me/assets/images/favicon-32x32.png"
                                         });
                                         return;
                                       }
@@ -237,17 +237,16 @@ function chat(msg, guid, offline, socket) {
                                   } else {
                                     socket.emit("chat", {
                                       from: "System",
-                                      msg:
-                                        ": I'm sorry but you can't ban yourself..",
-                                      icon:
-                                        "https://zoff.me/assets/images/favicon-32x32.png"
+                                      msg: ": I'm sorry but you can't ban yourself..",
+                                      icon: "https://zoff.me/assets/images/favicon-32x32.png"
                                     });
                                     return;
                                   }
                                 } else if (data.startsWith("/unban")) {
-                                  db.collection(coll + "_banned_chat").remove(
-                                    { connection_id: name[0].connection_id },
-                                    function(err, results) {
+                                  db.collection(coll + "_banned_chat").remove({
+                                      connection_id: name[0].connection_id
+                                    },
+                                    function (err, results) {
                                       if (
                                         results.hasOwnProperty("n") &&
                                         results.n == 1 &&
@@ -258,22 +257,18 @@ function chat(msg, guid, offline, socket) {
                                       ) {
                                         io.to(coll).emit("chat", {
                                           from: "System",
-                                          msg:
-                                            ": " +
+                                          msg: ": " +
                                             docs[0].name +
                                             " has unbanned " +
                                             splitData[1],
-                                          icon:
-                                            "https://zoff.me/assets/images/favicon-32x32.png"
+                                          icon: "https://zoff.me/assets/images/favicon-32x32.png"
                                         });
                                         return;
                                       } else {
                                         socket.emit("chat", {
                                           from: "System",
-                                          msg:
-                                            ": Cannot find anyone with that username in this chat.",
-                                          icon:
-                                            "https://zoff.me/assets/images/favicon-32x32.png"
+                                          msg: ": Cannot find anyone with that username in this chat.",
+                                          icon: "https://zoff.me/assets/images/favicon-32x32.png"
                                         });
                                         return;
                                       }
@@ -285,10 +280,8 @@ function chat(msg, guid, offline, socket) {
                                 ) {
                                   socket.emit("chat", {
                                     from: "System",
-                                    msg:
-                                      ": You are doing that command wrong. its /ban USERNAME",
-                                    icon:
-                                      "https://zoff.me/assets/images/favicon-32x32.png"
+                                    msg: ": You are doing that command wrong. its /ban USERNAME",
+                                    icon: "https://zoff.me/assets/images/favicon-32x32.png"
                                   });
                                   return;
                                 }
@@ -296,8 +289,7 @@ function chat(msg, guid, offline, socket) {
                                 socket.emit("chat", {
                                   from: "System",
                                   msg: ": No user by that name.",
-                                  icon:
-                                    "https://zoff.me/assets/images/favicon-32x32.png"
+                                  icon: "https://zoff.me/assets/images/favicon-32x32.png"
                                 });
                                 return;
                               }
@@ -306,27 +298,24 @@ function chat(msg, guid, offline, socket) {
                         } else {
                           socket.emit("chat", {
                             from: "System",
-                            msg:
-                              ": You are not logged in as an admin to the channel, don't try any funnybusiness.",
-                            icon:
-                              "https://zoff.me/assets/images/favicon-32x32.png"
+                            msg: ": You are not logged in as an admin to the channel, don't try any funnybusiness.",
+                            icon: "https://zoff.me/assets/images/favicon-32x32.png"
                           });
                           return;
                         }
                       } else {
                         socket.emit("chat", {
                           from: "System",
-                          msg:
-                            ": You are doing that command wrong. its /ban USERNAME REASON or /unban USERNAME",
-                          icon:
-                            "https://zoff.me/assets/images/favicon-32x32.png"
+                          msg: ": You are doing that command wrong. its /ban USERNAME REASON or /unban USERNAME",
+                          icon: "https://zoff.me/assets/images/favicon-32x32.png"
                         });
                         return;
                       }
                     } else {
-                      db.collection("registered_users").find(
-                        { _id: docs[0].name },
-                        function(err, n) {
+                      db.collection("registered_users").find({
+                          _id: docs[0].name
+                        },
+                        function (err, n) {
                           var icon = false;
                           if (n.length > 0 && n[0].icon) {
                             icon = n[0].icon;
@@ -399,7 +388,7 @@ function all_chat(msg, guid, offline, socket) {
     guid,
     socket,
     offline,
-    function() {
+    function () {
       if (
         data !== "" &&
         data !== undefined &&
@@ -407,17 +396,19 @@ function all_chat(msg, guid, offline, socket) {
         data.length < 151 &&
         data.replace(/\s/g, "").length
       ) {
-        db.collection("user_names").find({ guid: guid }, function(err, docs) {
+        db.collection("user_names").find({
+          guid: guid
+        }, function (err, docs) {
           if (docs.length == 1) {
-            db.collection("registered_users").find(
-              { _id: docs[0].name },
-              function(err, n) {
+            db.collection("registered_users").find({
+                _id: docs[0].name
+              },
+              function (err, n) {
                 var icon = false;
                 if (n.length > 0 && n[0].icon) {
                   icon = n[0].icon;
                 }
-                db.collection("chat_logs").insert(
-                  {
+                db.collection("chat_logs").insert({
                     createdAt: new Date(),
                     all: true,
                     channel: coll,
@@ -425,7 +416,7 @@ function all_chat(msg, guid, offline, socket) {
                     msg: ": " + data,
                     icon: icon
                   },
-                  function(err, docs) {}
+                  function (err, docs) {}
                 );
                 io.sockets.emit("chat.all", {
                   from: docs[0].name,
@@ -454,7 +445,7 @@ function all_chat(msg, guid, offline, socket) {
 function checkIfChatEnabled(channel, socket, callback) {
   if (channel == "" || channel == undefined) callback();
   else {
-    db.collection(channel + "_settings").find(function(err, docs) {
+    db.collection(channel + "_settings").find(function (err, docs) {
       if (
         docs.length > 0 &&
         (docs[0].hasOwnProperty("toggleChat") && !docs[0].toggleChat)
@@ -475,24 +466,34 @@ function checkIfChatEnabled(channel, socket, callback) {
 function checkIfUserIsBanned(channel, socket, guid, callback, callback_error) {
   var connection_id = Functions.hash_pass(
     socket.handshake.headers["user-agent"] +
-      socket.handshake.address +
-      socket.handshake.headers["accept-language"]
+    socket.handshake.address +
+    socket.handshake.headers["accept-language"]
   );
-  db.collection(channel + "_banned_chat").find(
-    { $or: [{ connection_id: connection_id }, { connection_id: guid }] },
-    function(err, docs) {
+  db.collection(channel + "_banned_chat").find({
+      $or: [{
+        connection_id: connection_id
+      }, {
+        connection_id: guid
+      }]
+    },
+    function (err, docs) {
       if (docs.length == 0) callback();
       else {
-        db.collection("user_names").findAndModify(
-          {
-            query: { guid, guid },
-            update: { $addToSet: { channels: channel } }
+        db.collection("user_names").findAndModify({
+            query: {
+              guid,
+              guid
+            },
+            update: {
+              $addToSet: {
+                channels: channel
+              }
+            }
           },
-          function(e, d) {
+          function (e, d) {
             socket.emit("chat", {
               from: "System",
-              msg:
-                ": You can't chat in this channel, you are banned. The reason is: " +
+              msg: ": You can't chat in this channel, you are banned. The reason is: " +
                 docs[0].reason,
               icon: "https://zoff.me/assets/images/favicon-32x32.png"
             });
@@ -506,7 +507,7 @@ function checkIfUserIsBanned(channel, socket, guid, callback, callback_error) {
 }
 
 function namechange(data, guid, socket, tried, callback) {
-  checkIfChatEnabled(data.channel, socket, function(enabled) {
+  checkIfChatEnabled(data.channel, socket, function (enabled) {
     if (!enabled) {
       callback(false);
       return;
@@ -515,11 +516,11 @@ function namechange(data, guid, socket, tried, callback) {
       data.channel,
       socket,
       guid,
-      function() {
+      function () {
         var pw = "";
         var new_password;
         var first = false;
-        Functions.getSessionChatPass(Functions.getSession(socket), function(
+        Functions.getSessionChatPass(Functions.getSession(socket), function (
           name,
           pass
         ) {
@@ -561,9 +562,10 @@ function namechange(data, guid, socket, tried, callback) {
             return;
           }
 
-          db.collection("registered_users").find(
-            { _id: name.toLowerCase() },
-            function(err, docs) {
+          db.collection("registered_users").find({
+              _id: name.toLowerCase()
+            },
+            function (err, docs) {
               var accepted_password = false;
               var icon = false;
               if (docs.length == 0) {
@@ -576,12 +578,17 @@ function namechange(data, guid, socket, tried, callback) {
                   Functions.getSession(socket),
                   name.toLowerCase(),
                   data.password,
-                  function() {
-                    db.collection("registered_users").update(
-                      { _id: name.toLowerCase() },
-                      { $set: { password: password } },
-                      { upsert: true },
-                      function() {}
+                  function () {
+                    db.collection("registered_users").update({
+                        _id: name.toLowerCase()
+                      }, {
+                        $set: {
+                          password: password
+                        }
+                      }, {
+                        upsert: true
+                      },
+                      function () {}
                     );
                   }
                 );
@@ -595,13 +602,16 @@ function namechange(data, guid, socket, tried, callback) {
                     Functions.getSession(socket),
                     name.toLowerCase(),
                     data.new_password,
-                    function() {
-                      db.collection("registered_users").update(
-                        { _id: name.toLowerCase(), password: password },
-                        {
-                          $set: { password: Functions.hash_pass(new_password) }
+                    function () {
+                      db.collection("registered_users").update({
+                          _id: name.toLowerCase(),
+                          password: password
+                        }, {
+                          $set: {
+                            password: Functions.hash_pass(new_password)
+                          }
                         },
-                        function() {}
+                        function () {}
                       );
                     }
                   );
@@ -609,17 +619,19 @@ function namechange(data, guid, socket, tried, callback) {
                   Functions.setSessionChatPass(
                     Functions.getSession(socket),
                     name.toLowerCase(),
-                    fetched
-                      ? data.password
-                      : Functions.hash_pass(
-                          Functions.decrypt_string(data.password)
-                        ),
-                    function() {}
+                    fetched ?
+                    data.password :
+                    Functions.hash_pass(
+                      Functions.decrypt_string(data.password)
+                    ),
+                    function () {}
                   );
                 }
               }
               if (accepted_password) {
-                db.collection("user_names").find({ guid: guid }, function(
+                db.collection("user_names").find({
+                  guid: guid
+                }, function (
                   err,
                   names
                 ) {
@@ -631,16 +643,20 @@ function namechange(data, guid, socket, tried, callback) {
                     if (names.length == 0) no_name = true;
                     if (!no_name) {
                       var old_name = names[0].name;
-                      db.collection("user_names").update(
-                        { _id: "all_names" },
-                        { $pull: { names: old_name } },
-                        function() {}
+                      db.collection("user_names").update({
+                          _id: "all_names"
+                        }, {
+                          $pull: {
+                            names: old_name
+                          }
+                        },
+                        function () {}
                       );
                     }
                     var connection_id = Functions.hash_pass(
                       socket.handshake.headers["user-agent"] +
-                        socket.handshake.address +
-                        socket.handshake.headers["accept-language"]
+                      socket.handshake.address +
+                      socket.handshake.headers["accept-language"]
                     );
                     var updateElement = {
                       $set: {
@@ -650,17 +666,25 @@ function namechange(data, guid, socket, tried, callback) {
                       }
                     };
                     if (data.hasOwnProperty("channel") && data.channel != "") {
-                      updateElement["$addToSet"] = { channels: data.channel };
+                      updateElement["$addToSet"] = {
+                        channels: data.channel
+                      };
                     }
-                    db.collection("user_names").update(
-                      { guid: guid },
-                      updateElement,
-                      { upsert: true },
-                      function(err, docs) {
-                        db.collection("user_names").update(
-                          { _id: "all_names" },
-                          { $addToSet: { names: name } },
-                          function(err, docs) {
+                    db.collection("user_names").update({
+                        guid: guid
+                      },
+                      updateElement, {
+                        upsert: true
+                      },
+                      function (err, docs) {
+                        db.collection("user_names").update({
+                            _id: "all_names"
+                          }, {
+                            $addToSet: {
+                              names: name
+                            }
+                          },
+                          function (err, docs) {
                             //socket.emit('name', {type: "name", accepted: true});
                             if (old_name != name && !first && !no_name) {
                               if (
@@ -699,8 +723,11 @@ function namechange(data, guid, socket, tried, callback) {
               } else {
                 Functions.removeSessionChatPass(
                   Functions.getSession(socket),
-                  function() {
-                    socket.emit("name", { type: "name", accepted: false });
+                  function () {
+                    socket.emit("name", {
+                      type: "name",
+                      accepted: false
+                    });
                   }
                 );
               }
@@ -715,19 +742,27 @@ function namechange(data, guid, socket, tried, callback) {
 
 function removename(guid, coll, socket) {
   //coll = coll.replace(/ /g,'');
-  checkIfChatEnabled(coll, socket, function(enabled) {
+  checkIfChatEnabled(coll, socket, function (enabled) {
     if (!enabled) return;
-    db.collection("user_names").find({ guid: guid }, function(err, docs) {
+    db.collection("user_names").find({
+      guid: guid
+    }, function (err, docs) {
       if (docs.length == 1) {
         var old_name = docs[0].name;
         Functions.removeSessionChatPass(
           Functions.getSession(socket),
-          function() {
-            db.collection("user_names").update(
-              { _id: "all_names" },
-              { $pull: { names: old_name } },
-              function(err, updated) {
-                db.collection("user_names").remove({ guid: guid }, function(
+          function () {
+            db.collection("user_names").update({
+                _id: "all_names"
+              }, {
+                $pull: {
+                  names: old_name
+                }
+              },
+              function (err, updated) {
+                db.collection("user_names").remove({
+                  guid: guid
+                }, function (
                   err,
                   removed
                 ) {
@@ -753,16 +788,23 @@ function generate_name(guid, announce_payload, second, round, channel) {
     second ? second : guid,
     Math.floor(8 + round)
   );
-  db.collection("registered_users").find({ _id: tmp_name }, function(
+  db.collection("registered_users").find({
+    _id: tmp_name
+  }, function (
     err,
     docs
   ) {
     if (docs.length == 0) {
-      db.collection("user_names").update(
-        { _id: "all_names" },
-        { $addToSet: { names: tmp_name } },
-        { upsert: true },
-        function(err, updated) {
+      db.collection("user_names").update({
+          _id: "all_names"
+        }, {
+          $addToSet: {
+            names: tmp_name
+          }
+        }, {
+          upsert: true
+        },
+        function (err, updated) {
           if (
             updated.nModified == 1 ||
             (updated.hasOwnProperty("upserted") &&
@@ -771,8 +813,8 @@ function generate_name(guid, announce_payload, second, round, channel) {
           ) {
             var connection_id = Functions.hash_pass(
               announce_payload.socket.handshake.headers["user-agent"] +
-                announce_payload.socket.handshake.address +
-                announce_payload.socket.handshake.headers["accept-language"]
+              announce_payload.socket.handshake.address +
+              announce_payload.socket.handshake.headers["accept-language"]
             );
             var updateElement = {
               $set: {
@@ -782,7 +824,9 @@ function generate_name(guid, announce_payload, second, round, channel) {
               }
             };
             if (channel != undefined && channel != "") {
-              updateElement["$addToSet"] = { channels: channel };
+              updateElement["$addToSet"] = {
+                channels: channel
+              };
             }
             if (
               announce_payload.hasOwnProperty("channel") &&
@@ -792,11 +836,13 @@ function generate_name(guid, announce_payload, second, round, channel) {
                 channels: announce_payload.channel
               };
             }
-            db.collection("user_names").update(
-              { guid: guid },
-              updateElement,
-              { upsert: true },
-              function(err, update) {
+            db.collection("user_names").update({
+                guid: guid
+              },
+              updateElement, {
+                upsert: true
+              },
+              function (err, update) {
                 name = tmp_name;
                 if (announce_payload.announce) {
                   io.to(announce_payload.channel).emit("chat", {
@@ -843,7 +889,7 @@ function get_name(guid, announce_payload, first) {
   if (!announce_payload.announce && announce_payload.hasOwnProperty("socket")) {
     Functions.getSessionChatPass(
       Functions.getSession(announce_payload.socket),
-      function(name, pass) {
+      function (name, pass) {
         if (name == "" || pass == "") {
           get_name_generate(
             guid,
@@ -853,9 +899,10 @@ function get_name(guid, announce_payload, first) {
           );
           return;
         }
-        db.collection("registered_users").find(
-          { _id: name.toLowerCase() },
-          function(err, docs) {
+        db.collection("registered_users").find({
+            _id: name.toLowerCase()
+          },
+          function (err, docs) {
             if (
               docs[0].password ==
               Functions.hash_pass(Functions.decrypt_string(pass))
@@ -868,15 +915,19 @@ function get_name(guid, announce_payload, first) {
                 Functions.getSession(announce_payload.socket),
                 name.toLowerCase(),
                 pass,
-                function() {}
+                function () {}
               );
               var connection_id = Functions.hash_pass(
                 announce_payload.socket.handshake.headers["user-agent"] +
-                  announce_payload.socket.handshake.address +
-                  announce_payload.socket.handshake.headers["accept-language"]
+                announce_payload.socket.handshake.address +
+                announce_payload.socket.handshake.headers["accept-language"]
               );
               var updateElement = {
-                $set: { name: name, icon: icon, connection_id: connection_id }
+                $set: {
+                  name: name,
+                  icon: icon,
+                  connection_id: connection_id
+                }
               };
               if (
                 announce_payload.hasOwnProperty("channel") &&
@@ -885,15 +936,21 @@ function get_name(guid, announce_payload, first) {
                 updateElement["$addToSet"] = {
                   channel: announce_payload.channel
                 };
-              db.collection("user_names").update(
-                { guid: guid },
-                updateElement,
-                { upsert: true },
-                function(err, docs) {
-                  db.collection("user_names").update(
-                    { _id: "all_names" },
-                    { $addToSet: { names: name } },
-                    function(err, docs) {
+              db.collection("user_names").update({
+                  guid: guid
+                },
+                updateElement, {
+                  upsert: true
+                },
+                function (err, docs) {
+                  db.collection("user_names").update({
+                      _id: "all_names"
+                    }, {
+                      $addToSet: {
+                        names: name
+                      }
+                    },
+                    function (err, docs) {
                       name = name;
                     }
                   );
@@ -910,7 +967,9 @@ function get_name(guid, announce_payload, first) {
 }
 
 function get_name_generate(guid, announce_payload, first, channel) {
-  db.collection("user_names").find({ guid: guid }, function(err, docs) {
+  db.collection("user_names").find({
+    guid: guid
+  }, function (err, docs) {
     if (docs.length == 0) {
       generate_name(guid, announce_payload, undefined);
     } else {
