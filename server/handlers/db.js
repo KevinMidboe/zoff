@@ -1,7 +1,7 @@
-import { join } from "path";
 import {
-  mongojs
-} from 'mongojs';
+  join
+} from "path";
+import mongojs from 'mongojs';
 
 try {
   var mongo_config = require(

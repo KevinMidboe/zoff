@@ -1,12 +1,11 @@
 import {
-  pathThumbnails
+  handlersPath
 } from "../settings/globals";
 
-
-var Functions = require(pathThumbnails + "/handlers/functions.js");
-var crypto = require("crypto");
-var projects = require(pathThumbnails + "/handlers/aggregates.js");
-var db = require(pathThumbnails + "/handlers/db.js");
+let Functions = require(handlersPath + "/functions.js");
+let crypto = require("crypto");
+let projects = require(handlersPath + "/aggregates.js");
+let db = require(handlersPath + "/db.js");
 
 function password(inp, coll, guid, offline, socket) {
   var sessionId = Functions.getSession(socket);

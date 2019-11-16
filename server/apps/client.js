@@ -1,27 +1,18 @@
 import {
   publicPath,
-  pathThumbnails,
+  handlersPath,
+  clientRoutingPath,
+  certAvailble
 } from "../settings/globals";
 
-var secure = false;
-var path = require("path");
-try {
-  var cert_config = require(path.join(
-    path.join(__dirname, "../config/"),
-    "cert_config.js"
-  ));
-  var fs = require("fs");
-  secure = true;
-} catch (err) {}
+let express = require("express");
+let app = express();
+let compression = require("compression");
+let exphbs = require("express-handlebars");
+let cors = require("cors");
+let Functions = require(handlersPath + "/functions.js");
 
-var express = require("express");
-var app = express();
-var compression = require("compression");
-var exphbs = require("express-handlebars");
-var cors = require("cors");
-var Functions = require(pathThumbnails + "/handlers/functions.js");
-
-var hbs = exphbs.create({
+let hbs = exphbs.create({
   defaultLayout: publicPath + "/layouts/client/main",
   layoutsDir: publicPath + "/layouts/client",
   partialsDir: publicPath + "/partials",
@@ -39,7 +30,32 @@ var hbs = exphbs.create({
     }
   }
 });
-var uniqid = require("uniqid");
+
+let uniqid = require("uniqid");
+let bodyParser = require("body-parser");
+let cookieParser = require("cookie-parser");
+let referrerPolicy = require("referrer-policy");
+let helmet = require("helmet");
+let featurePolicy = require("feature-policy");
+
+/* Globally needed "libraries" and files */
+let router = require(clientRoutingPath + "/router.js");
+let api_file = require(clientRoutingPath + "/api.js");
+let api = api_file.router;
+api_file.sIO = app.socketIO;
+let ico_router = require(clientRoutingPath + "/icons_routing.js");
+
+app.engine("handlebars", hbs.engine);
+app.set("view engine", "handlebars");
+app.enable("view cache");
+app.set("views", publicPath);
+app.set("trust proxy", "127.0.0.1");
+
+import {
+  start
+} from "../handlers/io";
+app.socketIO = start();
+
 app.use(compression({
   filter: shouldCompress
 }));
@@ -53,19 +69,10 @@ function shouldCompress(req, res) {
   // fallback to standard filter function
   return compression.filter(req, res);
 }
-
-app.engine("handlebars", hbs.engine);
-app.set("view engine", "handlebars");
-app.enable("view cache");
-app.set("views", publicPath);
-app.set("trust proxy", "127.0.0.1");
-
-var bodyParser = require("body-parser");
-var cookieParser = require("cookie-parser");
-var referrerPolicy = require("referrer-policy");
-var helmet = require("helmet");
-var featurePolicy = require("feature-policy");
-
+app.get("/robots.txt", function (req, res) {
+  res.type("text/plain");
+  res.send("User-agent: *\nAllow: /$\nDisallow: /");
+});
 app.use(
   featurePolicy({
     features: {
@@ -95,30 +102,10 @@ app.use(
 );
 app.use(cookieParser());
 
-io = require("socket.io")({
-  pingTimeout: 25000
-});
-
-var socketIO = require(pathThumbnails + "/handlers/io.js");
-socketIO();
-
-app.socketIO = io;
-
-/* Globally needed "libraries" and files */
-var router = require(pathThumbnails + "/routing/client/router.js");
-var api_file = require(pathThumbnails + "/routing/client/api.js");
-var api = api_file.router;
-api_file.sIO = app.socketIO;
-var ico_router = require(pathThumbnails + "/routing/client/icons_routing.js");
-
-app.get("/robots.txt", function (req, res) {
-  res.type("text/plain");
-  res.send("User-agent: *\nAllow: /$\nDisallow: /");
-});
 
 app.use(function (req, res, next) {
-  var cookie = req.cookies._uI;
-  var skipElements = [
+  let cookie = req.cookies._uI;
+  let skipElements = [
     "/_embed",
     "/assets/manifest.json",
     "/apple-touch-icon.png"
@@ -146,13 +133,13 @@ app.use(function (req, res, next) {
         res.cookie("_uI", user_name, {
           maxAge: 365 * 10000 * 3600000,
           httpOnly: true,
-          secure: secure
+          secure: certAvailble
         });
       } else {
         res.cookie("_uI", cookie, {
           maxAge: 365 * 10000 * 3600000,
           httpOnly: true,
-          secure: secure
+          secure: certAvailble
         });
       }
       res.header("Access-Control-Allow-Origin", "*");

@@ -1,6 +1,6 @@
 import {
-  pathThumbnails
-} from "../settings/globals";
+  handlersPath
+} from "../../settings/globals";
 
 var express = require("express");
 var router = express.Router();
@@ -13,9 +13,9 @@ var adsense = "xx";
 var adds = false;
 var mongojs = require("mongojs");
 var token_db = mongojs("tokens");
-var Frontpage = require(pathThumbnails + "/handlers/frontpage.js");
+var Frontpage = require(handlersPath + "/frontpage.js");
 
-var db = require(pathThumbnails + "/handlers/db.js");
+var db = require(handlersPath + "/db.js");
 
 try {
   google = require(path.join(

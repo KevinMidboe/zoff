@@ -1,16 +1,16 @@
-var path = require("path");
+let path = require("path");
 
 function requested_change(type, string, channel) {
   try {
-    var nodemailer = require("nodemailer");
-    var mailconfig = require(path.join(__dirname, "../config/mailconfig.js"));
-    var transporter = nodemailer.createTransport(mailconfig);
+    let nodemailer = require("nodemailer");
+    let mailconfig = require(path.join(__dirname, "../config/mailconfig.js"));
+    let transporter = nodemailer.createTransport(mailconfig);
 
     transporter.verify(function (error, success) {
       if (error) {
         return;
       } else {
-        var message =
+        let message =
           "A " +
           type +
           " change was requested on <b>" +
@@ -19,7 +19,7 @@ function requested_change(type, string, channel) {
           string +
           "</b><br><br><br> \
                 Go to <a href='https://admin.zoff.me/'>https://admin.zoff.me/</a> to accept or decline the request.";
-        var msg = {
+        let msg = {
           from: mailconfig.from,
           to: mailconfig.notify_mail,
           subject: "ZOFF: Requested new " + type,

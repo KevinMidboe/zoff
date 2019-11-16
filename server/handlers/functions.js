@@ -1,8 +1,8 @@
 import {
-  pathThumbnails
+  handlersPath
 } from "../settings/globals";
 
-var path = require("path");
+let path = require("path");
 try {
   var mongo_config = require(path.join(
     path.join(__dirname, "../config/"),
@@ -14,24 +14,24 @@ try {
   );
   process.exit(1);
 }
-var mongojs = require("mongojs");
-var connected_db = mongojs(
+let mongojs = require("mongojs");
+let connected_db = mongojs(
   "mongodb://" + mongo_config.host + "/user_credentials"
 );
-var crypto = require("crypto");
-var db = require(pathThumbnails + "/handlers/db.js");
-var uniqid = require("uniqid");
-var Filter = require("bad-words");
-var filter = new Filter({
+let crypto = require("crypto");
+let db = require(handlersPath + "/db.js");
+let uniqid = require("uniqid");
+let Filter = require("bad-words");
+let filter = new Filter({
   placeHolder: "x"
 });
 
-var Chat = require(pathThumbnails + "/handlers/chat.js");
+let Chat = require(handlersPath + "/chat.js");
 
 function encodeChannelName(str) {
-  var _fn = encodeURIComponent;
+  const _fn = encodeURIComponent;
   str = filter.clean(str);
-  var toReturn = _fn(str);
+  let toReturn = _fn(str);
   toReturn = toReturn.replace(/_/g, "%5F");
   toReturn = toReturn.replace(/'/g, "%27");
   toReturn = toReturn.replace(/%26amp%3B/g, "%26").replace(/%26amp%3b/g, "%26");
@@ -40,9 +40,9 @@ function encodeChannelName(str) {
 }
 
 function decodeChannelName(str) {
-  var _fn = decodeURIComponent;
+  const _fn = decodeURIComponent;
   str = str.toUpperCase();
-  var toReturn = _fn(str.replace(/%5F/g, "_").replace(/%27/g, "'"));
+  let toReturn = _fn(str.replace(/%5F/g, "_").replace(/%27/g, "'"));
   toReturn = filter.clean(toReturn);
   return toReturn.toLowerCase();
 }
@@ -98,7 +98,7 @@ function remove_name_from_db(guid, channel) {
     } else {
       if (channel == undefined || channel == "") return;
       db.collection("user_names").update({
-          guid: guid
+          guid
         }, {
           $pull: {
             channels: channel
@@ -111,7 +111,7 @@ function remove_name_from_db(guid, channel) {
 }
 
 function isUrl(str) {
-  var pattern = new RegExp(
+  const pattern = new RegExp(
     "\\b(((ht|f)tp(s?)\\:\\/\\/|~\\/|\\/)|www.)" +
     "(\\w+:\\w+@)?(([-\\w]+\\.)+(com|org|net|gov" +
     "|mil|biz|info|mobi|name|aero|jobs|museum" +
@@ -146,13 +146,13 @@ function getSession(socket) {
 
 function remove_from_array(array, element) {
   if (contains(array, element)) {
-    var index = array.indexOf(element);
+    const index = array.indexOf(element);
     if (index != -1) array.splice(index, 1);
   }
 }
 
 function generate_channel_name(res) {
-  var trying_id = uniqid.time().toLowerCase();
+  const trying_id = uniqid.time().toLowerCase();
   db.collection("frontpage_lists").find({
       frontpage: {
         $exists: true
@@ -172,7 +172,7 @@ function generate_channel_name(res) {
 }
 
 function get_short_id(socket) {
-  var new_short_id = uniqid.time().toLowerCase();
+  const new_short_id = uniqid.time().toLowerCase();
 
   socket.join(new_short_id);
   socket.emit("id", new_short_id);
@@ -233,10 +233,10 @@ function check_inlist(coll, guid, socket, offline, callback, double_check) {
                       docs
                     ) {
                       if (docs.length == 1) {
-                        var icon = "";
+                        let icon = "";
                         if (docs[0].icon != undefined) icon = docs[0].icon;
                         db.collection("user_names").update({
-                            guid: guid
+                            guid
                           }, {
                             $addToSet: {
                               channels: coll
@@ -247,14 +247,14 @@ function check_inlist(coll, guid, socket, offline, callback, double_check) {
                         if (enabled) {
                           socket.broadcast.to(coll).emit("chat", {
                             from: docs[0].name,
-                            icon: icon,
+                            icon,
                             msg: " joined"
                           });
                         }
                       } else if (docs.length == 0) {
                         Chat.get_name(guid, {
                           announce: false,
-                          socket: socket,
+                          socket,
                           channel: coll
                         });
                       }
@@ -331,7 +331,7 @@ function check_inlist(coll, guid, socket, offline, callback, double_check) {
 }
 
 function rndName(seed, len) {
-  var vowels = ["a", "e", "i", "o", "u"];
+  const vowels = ["a", "e", "i", "o", "u"];
   consts = [
     "b",
     "c",
@@ -356,9 +356,9 @@ function rndName(seed, len) {
   len = Math.floor(len);
   word = "";
   is_vowel = false;
-  var arr;
+  let arr;
   try {
-    for (var i = 0; i < len; i++) {
+    for (let i = 0; i < len; i++) {
       if (is_vowel) arr = vowels;
       else arr = consts;
       is_vowel = !is_vowel;
@@ -372,7 +372,7 @@ function rndName(seed, len) {
 
 function removeEmojis(string) {
   //https://stackoverflow.com/a/41164278/4266467
-  var regex = /(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g;
+  const regex = /(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g;
   return string.replace(regex, "");
 }
 
@@ -385,14 +385,14 @@ function decrypt_string(pw) {
 }
 
 function get_time() {
-  var d = new Date();
-  var time = Math.floor(d.getTime() / 1000);
+  const d = new Date();
+  const time = Math.floor(d.getTime() / 1000);
   return time;
 }
 
 function contains(a, obj) {
   try {
-    var i = a.length;
+    let i = a.length;
     while (i--) {
       if (a[i] === obj) {
         return true;
@@ -483,8 +483,8 @@ function getSessionChatPass(id, callback) {
       _id: "_chat_"
     }, function (e, d) {
       if (d.length > 0) {
-        var name = "";
-        var pass = "";
+        let name = "";
+        let pass = "";
         if (d[0].name != undefined) name = d[0].name;
         if (d[0].password != undefined) pass = d[0].password;
         callback(name, pass);
@@ -568,8 +568,8 @@ function getSessionAdminUser(id, list, callback) {
     connected_db.collection(id).find({
       _id: list
     }, function (e, d) {
-      var userpass = "";
-      var adminpass = "";
+      let userpass = "";
+      let adminpass = "";
       if (d.length > 0) {
         if (d[0].hasOwnProperty("chromecast") && d[0].chromecast) {
           getSessionAdminUser(d[0].id, list, callback);
@@ -682,7 +682,7 @@ function left_channel(coll, guid, short_id, in_list, socket, change, caller) {
                 docs
               ) {
                 if (docs.length == 1) {
-                  var icon = "";
+                  let icon = "";
                   if (docs[0].icon != undefined) icon = docs[0].icon;
                   io.to(coll).emit("chat", {
                     from: docs[0].name,
@@ -749,21 +749,21 @@ function checkTimeout(
     return;
   }
   db.collection("timeout_api").find({
-      type: type,
-      guid: guid
+      type,
+      guid
     },
     function (err, docs) {
       if (docs.length > 0) {
-        var date = new Date(docs[0].createdAt);
+        const date = new Date(docs[0].createdAt);
         date.setSeconds(date.getSeconds() + timeout);
-        var now = new Date();
+        const now = new Date();
 
-        var retry_in = (date.getTime() - now.getTime()) / 1000;
+        const retry_in = (date.getTime() - now.getTime()) / 1000;
         if (retry_in > 0) {
           if (typeof error_callback == "function") {
             error_callback();
           } else if (error_message) {
-            var sOrNot =
+            const sOrNot =
               Math.ceil(retry_in) > 1 || Math.ceil(retry_in) == 0 ? "s" : "";
             socket.emit(
               "toast",
@@ -775,15 +775,14 @@ function checkTimeout(
           return;
         }
       }
-      var now_date = new Date();
       db.collection("timeout_api").update({
-          type: type,
-          guid: guid
+          type,
+          guid
         }, {
           $set: {
-            createdAt: now_date,
-            type: type,
-            guid: guid
+            createdAt: now,
+            type,
+            guid
           }
         }, {
           upsert: true

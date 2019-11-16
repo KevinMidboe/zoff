@@ -1,5 +1,1 @@
-VERSION = 6;
-
-try {
-  module.exports = VERSION;
-} catch (e) {}
+export const VERSION = 6;

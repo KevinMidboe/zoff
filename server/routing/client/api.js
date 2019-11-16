@@ -1,14 +1,15 @@
 import {
-  pathThumbnails
-} from "../settings/globals";
+  pathThumbnails,
+  handlersPath
+} from "../../settings/globals";
 
-var express = require("express");
-var router = express.Router();
-var path = require("path");
-var mongojs = require("mongojs");
-var token_db = mongojs("tokens");
-var db = require(pathThumbnails + "/handlers/db.js");
-var allowed_key;
+let express = require("express");
+let router = express.Router();
+let path = require("path");
+let mongojs = require("mongojs");
+let token_db = mongojs("tokens");
+let db = require(handlersPath + "/db.js");
+let allowed_key;
 
 try {
   allowed_key = require(pathThumbnails + "/config/allowed_api.js");
@@ -18,25 +19,25 @@ try {
     "(!) Missing file - /config/allowed_api.js Have a look at /config/allowed_api.example.js."
   );
 }
-var crypto = require("crypto");
-var List = require(pathThumbnails + "/handlers/list.js");
-var Functions = require(pathThumbnails + "/handlers/functions.js");
-var Frontpage = require(pathThumbnails + "/handlers/frontpage.js");
-var Search = require(pathThumbnails + "/handlers/search.js");
-var uniqid = require("uniqid");
-var Filter = require("bad-words");
-var filter = new Filter({
+let crypto = require("crypto");
+let List = require(handlersPath + "/list.js");
+let Functions = require(handlersPath + "/functions.js");
+let Frontpage = require(handlersPath + "/frontpage.js");
+let Search = require(handlersPath + "/search.js");
+let uniqid = require("uniqid");
+let Filter = require("bad-words");
+let filter = new Filter({
   placeHolder: "x"
 });
-var paginate = require("mongojs-paginate");
+let paginate = require("mongojs-paginate");
 
-var _exports = {
+let _exports = {
   router: router,
   sIO: {}
 };
-var projects = require(pathThumbnails + "/handlers/aggregates.js");
+let projects = require(handlersPath + "/aggregates.js");
 
-var error = {
+let error = {
   not_found: {
     youtube: {
       status: 404,

@@ -1,10 +1,10 @@
 import {
-  pathThumbnails,
+  handlersPath,
   VERSION
 } from "../settings/globals";
 
-var Functions = require(pathThumbnails + "/handlers/functions.js");
-var db = require(pathThumbnails + "/handlers/db.js");
+let db = require(handlersPath + "/db.js");
+let Functions = require(handlersPath + "/functions.js");
 
 function frontpage_lists(msg, socket) {
   if (
@@ -13,7 +13,7 @@ function frontpage_lists(msg, socket) {
     msg.version != VERSION ||
     msg.version == undefined
   ) {
-    var result = {
+    const result = {
       version: {
         expected: VERSION,
         got: msg.hasOwnProperty("version") ? msg.version : undefined
@@ -46,7 +46,7 @@ function frontpage_lists(msg, socket) {
 }
 
 function get_frontpage_lists(callback) {
-  var project_object = {
+  const project_object = {
     _id: 1,
     count: 1,
     frontpage: 1,
@@ -136,9 +136,9 @@ function update_frontpage(coll, id, title, thumbnail, source, callback) {
   db.collection("frontpage_lists").find({
     _id: coll
   }, function (e, doc) {
-    var updateObject = {
-      id: id,
-      title: title,
+    const updateObject = {
+      id,
+      title,
       accessed: Functions.get_time()
     };
     if (

@@ -1,14 +1,14 @@
 import {
-  pathThumbnails
+  handlersPath
 } from "../settings/globals";
 
-var Functions = require(pathThumbnails + "/handlers/functions.js");
-var List = require(pathThumbnails + "/handlers/list.js");
-var Frontpage = require(pathThumbnails + "/handlers/frontpage.js");
-var Search = require(pathThumbnails + "/handlers/search.js");
-var Chat = require(pathThumbnails + "/handlers/chat.js");
-var crypto = require("crypto");
-var db = require(pathThumbnails + "/handlers/db.js");
+let Functions = require(handlersPath + "/functions.js");
+let List = require(handlersPath + "/list.js");
+let Frontpage = require(handlersPath + "/frontpage.js");
+let Search = require(handlersPath + "/search.js");
+let Chat = require(handlersPath + "/chat.js");
+let crypto = require("crypto");
+let db = require(handlersPath + "/db.js");
 
 function addFromOtherList(arr, guid, offline, socket) {
   if (typeof arr == "object") {

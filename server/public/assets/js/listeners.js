@@ -13,12 +13,12 @@ if (domain.length > 0 && domain[0] == "client") {
   client = true;
 }
 var _VERSION;
-try {
-  _VERSION = localStorage.getItem("VERSION");
-  if (_VERSION == null || _VERSION == undefined) throw "Some error";
-} catch (e) {
+
+_VERSION = localStorage.getItem("VERSION");
+if (_VERSION == null || _VERSION == undefined) {
   _VERSION = VERSION;
-}
+};
+
 var SC_widget;
 var scUsingWidget = false;
 var SC_player;
@@ -197,9 +197,7 @@ window.addEventListener(
   function () {
     addDynamicListeners();
     if (!_VERSION || parseInt(_VERSION) != VERSION) {
-      try {
-        localStorage.setItem("VERSION", VERSION);
-      } catch (e) {}
+      localStorage.setItem("VERSION", VERSION);
     }
 
     if (!fromFront && window.location.pathname != "/") Channel.init();

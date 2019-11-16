@@ -1,5 +1,5 @@
 import {
-  pathThumbnails
+  handlersPath
 } from "../settings/globals";
 
 var path = require("path");
@@ -15,7 +15,7 @@ try {
   process.exit(1);
 }
 var request = require("request");
-var db = require(pathThumbnails + "/handlers/db.js");
+var db = require(handlersPath + "/db.js");
 var countryCodes = ["US", "NO", "SE", "DK", "CA", "EU", "UK"];
 
 function check_if_error_or_blocked(id, channel, errored, callback) {

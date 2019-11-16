@@ -1,16 +1,16 @@
 import {
-  pathThumbnails,
+  handlersPath,
   VERSION
 } from "../settings/globals";
 
-var ColorThief = require("color-thief-jimp");
-var Jimp = require("jimp");
-var Functions = require(pathThumbnails + "/handlers/functions.js");
-var Frontpage = require(pathThumbnails + "/handlers/frontpage.js");
-var projects = require(pathThumbnails + "/handlers/aggregates.js");
-var crypto = require("crypto");
-var Search = require(pathThumbnails + "/handlers/search.js");
-var db = require(pathThumbnails + "/handlers/db.js");
+let ColorThief = require("color-thief-jimp");
+let Jimp = require("jimp");
+let Functions = require(handlersPath + "/functions.js");
+let Frontpage = require(handlersPath + "/frontpage.js");
+let projects = require(handlersPath + "/aggregates.js");
+let crypto = require("crypto");
+let Search = require(handlersPath + "/search.js");
+let db = require(handlersPath + "/db.js");
 
 function now_playing(list, fn, socket) {
   if (typeof list !== "string" || typeof fn !== "function") {

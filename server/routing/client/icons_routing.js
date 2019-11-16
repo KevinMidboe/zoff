@@ -1,6 +1,6 @@
 import {
   pathThumbnails
-} from "../settings/globals";
+} from "../../settings/globals";
 
 
 var express = require("express");
