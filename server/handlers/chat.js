@@ -14,7 +14,6 @@ function get_history(channel, all, socket) {
       channel: channel
     };
   }
-  //channel = channel.replace(/ /g,'');
   var pass = "";
   if (!query.all) {
     Functions.getSessionAdminUser(
@@ -49,7 +48,6 @@ function get_history(channel, all, socket) {
 }
 
 function getAndSendLogs(channel, all, socket, pass, query) {
-  //channel = channel.replace(/ /g,'');
   db.collection("chat_logs")
     .find(query, {
       from: 1,
@@ -108,9 +106,8 @@ function chat(msg, guid, offline, socket) {
     socket.emit("update_required", result);
     return;
   }
-  var coll = msg.channel.toLowerCase(); //.replace(/ /g,'');
+  var coll = msg.channel.toLowerCase();
   coll = Functions.removeEmojis(coll).toLowerCase();
-  //coll = filter.clean(coll);
 
   checkIfUserIsBanned(coll, socket, guid, function () {
     Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
@@ -379,10 +376,9 @@ function all_chat(msg, guid, offline, socket) {
     socket.emit("update_required", result);
     return;
   }
-  var coll = msg.channel.toLowerCase(); //.replace(/ /g,'');
+  var coll = msg.channel.toLowerCase();
   var data = msg.data;
   coll = Functions.removeEmojis(coll).toLowerCase();
-  //coll = filter.clean(coll);
   Functions.check_inlist(
     coll,
     guid,
@@ -481,8 +477,7 @@ function checkIfUserIsBanned(channel, socket, guid, callback, callback_error) {
       else {
         db.collection("user_names").findAndModify({
             query: {
-              guid,
-              guid
+              guid: guid
             },
             update: {
               $addToSet: {
@@ -685,7 +680,6 @@ function namechange(data, guid, socket, tried, callback) {
                             }
                           },
                           function (err, docs) {
-                            //socket.emit('name', {type: "name", accepted: true});
                             if (old_name != name && !first && !no_name) {
                               if (
                                 data.hasOwnProperty("channel") &&
@@ -741,7 +735,6 @@ function namechange(data, guid, socket, tried, callback) {
 }
 
 function removename(guid, coll, socket) {
-  //coll = coll.replace(/ /g,'');
   checkIfChatEnabled(coll, socket, function (enabled) {
     if (!enabled) return;
     db.collection("user_names").find({

@@ -23,20 +23,18 @@ function thumbnail(msg, coll, guid, offline, socket) {
         thumbnail: {
           expected: "string",
           got: msg.hasOwnProperty("thumbnail") ?
-            typeof msg.thumbnail :
-            undefined
+            typeof msg.thumbnail : undefined
         },
         adminpass: {
           expected: "string",
           got: msg.hasOwnProperty("adminpass") ?
-            typeof msg.adminpass :
-            undefined
+            typeof msg.adminpass : undefined
         }
       };
       socket.emit("update_required", result);
       return;
     }
-    //coll = coll.replace(/ /g,'');
+
     Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
       adminpass
@@ -125,20 +123,17 @@ function description(msg, coll, guid, offline, socket) {
         description: {
           expected: "string",
           got: msg.hasOwnProperty("description") ?
-            typeof msg.description :
-            undefined
+            typeof msg.description : undefined
         },
         adminpass: {
           expected: "string",
           got: msg.hasOwnProperty("adminpass") ?
-            typeof msg.adminpass :
-            undefined
+            typeof msg.adminpass : undefined
         }
       };
       socket.emit("update_required", result);
       return;
     }
-    //coll = coll.replace(/ /g,'');
     Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
       adminpass,
@@ -227,14 +222,12 @@ function rules(msg, coll, guid, offline, socket) {
         adminpass: {
           expected: "string",
           got: msg.hasOwnProperty("adminpass") ?
-            typeof msg.adminpass :
-            undefined
+            typeof msg.adminpass : undefined
         }
       };
       socket.emit("update_required", result);
       return;
     }
-    //coll = coll.replace(/ /g,'');
     Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
       adminpass,

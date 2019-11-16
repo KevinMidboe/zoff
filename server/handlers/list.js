@@ -28,7 +28,6 @@ function now_playing(list, fn, socket) {
 function join_silent(msg, socket) {
   if (typeof msg === "object" && msg !== undefined && msg !== null) {
     var channelName = msg.channel;
-    var tryingPassword = false;
     var password = "";
     if (msg.password != "") {
       tryingPassword = true;
@@ -39,7 +38,7 @@ function join_silent(msg, socket) {
         .digest("base64");
     }
 
-    channelName = channelName.toLowerCase(); //.replace(/ /g,'');
+    channelName = channelName.toLowerCase();
     channelName = Functions.removeEmojis(channelName).toLowerCase();
     db.collection(channelName + "_settings").find(function (err, docs) {
       if (docs.length == 0) {
@@ -61,7 +60,6 @@ function join_silent(msg, socket) {
 }
 
 function list(msg, guid, coll, offline, socket) {
-  var socketid = socket.zoff_id;
   if (typeof msg === "object" && msg !== undefined && msg !== null) {
     Functions.getSessionAdminUser(Functions.getSession(socket), coll, function (
       userpass,
@@ -244,19 +242,14 @@ function list(msg, guid, coll, offline, socket) {
 }
 
 function skip(list, guid, coll, offline, socket, callback) {
-  var socketid = socket.zoff_id;
-
   if (list !== undefined && list !== null && list !== "") {
     if (coll == undefined && list.hasOwnProperty("channel"))
       coll = list.channel.toLowerCase();
     if (coll !== undefined) {
       try {
-        coll = list.channel.toLowerCase(); //.replace(/ /g,'');
+        coll = list.channel.toLowerCase();
         if (coll.length == 0) return;
         coll = Functions.removeEmojis(coll).toLowerCase();
-        //coll = coll.replace(/_/g, "");
-
-        //coll = filter.clean(coll);
       } catch (e) {
         return;
       }
@@ -356,7 +349,6 @@ function skip(list, guid, coll, offline, socket, callback) {
                 error = true;
               }
               hash = adminpass;
-              //db.collection(coll + "_settings").find(function(err, docs){
               var strictSkip = false;
               var strictSkipNumber = 10;
               if (docs[0].strictSkip) strictSkip = docs[0].strictSkip;
@@ -488,7 +480,6 @@ function skip(list, guid, coll, offline, socket, callback) {
               }
             }
           );
-          //});
         } else {
           socket.emit("auth_required");
         }
@@ -506,9 +497,6 @@ function skip(list, guid, coll, offline, socket, callback) {
 }
 
 function change_song(coll, error, id, conf, callback, socket) {
-  //coll = coll.replace(/ /g,'');
-  //db.collection(coll + "_settings").find(function(err, docs){
-  var startTime = conf[0].startTime;
   if (conf !== null && conf.length !== 0) {
     db.collection(coll).aggregate(
       [{
@@ -678,11 +666,9 @@ function change_song(coll, error, id, conf, callback, socket) {
       }
     );
   }
-  //});
 }
 
 function change_song_post(coll, next_song, conf, callback, socket, removed) {
-  //coll = coll.replace(/ /g,'');
   db.collection(coll).aggregate(
     [{
         $match: {
@@ -743,7 +729,6 @@ function change_song_post(coll, next_song, conf, callback, socket, removed) {
                 }
               },
               function (err, returnDocs) {
-                //db.collection(coll + "_settings").find({id: "config"}, function(err, conf){
                 if (!callback) {
                   io.to(coll).emit("channel", {
                     type: "song_change",
@@ -778,7 +763,6 @@ function change_song_post(coll, next_song, conf, callback, socket, removed) {
                   docs[0].thumbnail,
                   docs[0].source
                 );
-                //});
               }
             );
           }
@@ -789,7 +773,6 @@ function change_song_post(coll, next_song, conf, callback, socket, removed) {
 }
 
 function send_list(coll, socket, send, list_send, configs, shuffled) {
-  //coll = coll.replace(/ /g,'');
   db.collection(coll + "_settings").aggregate(
     [{
         $match: {
@@ -855,7 +838,7 @@ function send_list(coll, socket, send, list_send, configs, shuffled) {
           ],
           function (
             err,
-            docs //db.collection(coll).find({type: {$ne: "suggested"}}, function(err, docs)
+            docs
           ) {
             if (docs.length > 0) {
               db.collection(coll).find({
@@ -1096,7 +1079,6 @@ function send_list(coll, socket, send, list_send, configs, shuffled) {
 }
 
 function end(obj, coll, guid, offline, socket) {
-  var socketid = socket.zoff_id;
   if (typeof obj !== "object") {
     return;
   }
@@ -1203,7 +1185,6 @@ function end(obj, coll, guid, offline, socket) {
 }
 
 function send_play(coll, socket, broadcast) {
-  //coll = coll.replace(/ /g,'');
   db.collection(coll).find({
     now_playing: true
   }, function (err, np) {
@@ -1226,7 +1207,6 @@ function send_play(coll, socket, broadcast) {
           };
           if (socket === undefined) {
             io.to(coll).emit("np", toSend);
-            //
             getNextSong(coll, undefined);
             var url =
               "https://img.youtube.com/vi/" + np[0].id + "/mqdefault.jpg";
@@ -1260,12 +1240,8 @@ function send_play(coll, socket, broadcast) {
 }
 
 function sendColor(coll, socket, url, ajax, res) {
-  if (coll != undefined && typeof coll == "string") {
-    //coll = coll.replace(/ /g,'');
-  }
   if (url.indexOf("://") == -1)
     url = "https://img.youtube.com/vi/" + url + "/mqdefault.jpg";
-  //var url = 'https://img.youtube.com/vi/'+id+'/mqdefault.jpg';
 
   Jimp.read(url)
     .then(function (image) {

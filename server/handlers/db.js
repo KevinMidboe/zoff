@@ -12,10 +12,6 @@ try {
 }
 var mongojs = require("mongojs");
 var db = mongojs("mongodb://" + mongo_config.host + "/" + mongo_config.config);
-var connected_db = mongojs(
-  "mongodb://" + mongo_config.host + "/user_credentials"
-);
-var ObjectId = mongojs.ObjectId;
 
 db.collection("chat_logs").createIndex({
     createdAt: 1

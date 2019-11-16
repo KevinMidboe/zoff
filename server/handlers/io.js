@@ -1,4 +1,3 @@
-var cookieParser = require("cookie-parser");
 var cookie = require("cookie");
 
 var Functions = require(pathThumbnails + "/handlers/functions.js");
@@ -10,15 +9,6 @@ var ListSettings = require(pathThumbnails + "/handlers/list_settings.js");
 var Frontpage = require(pathThumbnails + "/handlers/frontpage.js");
 var Search = require(pathThumbnails + "/handlers/search.js");
 var crypto = require("crypto");
-var Filter = require("bad-words");
-var filter = new Filter({
-  placeHolder: "x"
-});
-/*var filter = {
-    clean: function(str) {
-        return str;
-    }
-}*/
 var db = require(pathThumbnails + "/handlers/db.js");
 
 module.exports = function () {
@@ -26,7 +16,6 @@ module.exports = function () {
     try {
       var parsedCookies = cookie.parse(socket.handshake.headers.cookie);
       socket.cookie_id = parsedCookies["_uI"];
-      //return socket.guid;
     } catch (e) {
       socket.cookie_id = "empty";
     }
@@ -47,7 +36,6 @@ module.exports = function () {
       socket.emit("ok");
     });
 
-    var ping_timeout;
     var socketid = socket.zoff_id;
     var coll;
     var in_list = false;
@@ -70,7 +58,6 @@ module.exports = function () {
       if (msg.hasOwnProperty("channel")) {
         msg.channel = Functions.encodeChannelName(msg.channel);
       }
-      //channel = channel.replace(/ /g,'');
       if (offline) {
         db.collection("connected_users").update({
             _id: "offline_users"
@@ -178,9 +165,8 @@ module.exports = function () {
               connected_users_channel.length > 0 &&
               connected_users_channel[0].users.indexOf(msg.guid) > -1
             ) {
-              coll = msg.channel.toLowerCase(); //.replace(/ /g,'');
+              coll = msg.channel.toLowerCase();
               coll = Functions.removeEmojis(coll).toLowerCase();
-              //coll = filter.clean(coll);
               if (coll.indexOf("?") > -1) {
                 coll = coll.substring(0, coll.indexOf("?"));
               }
@@ -190,7 +176,6 @@ module.exports = function () {
                 msg.channel,
                 function (results) {}
               );
-              //socket.cookie_id = msg.guid;
               guid = msg.guid;
               socketid = msg.socket_id;
               socket.zoff_id = socketid;
@@ -216,16 +201,13 @@ module.exports = function () {
     socket.on("error_video", function (msg) {
       try {
         msg.channel = Functions.encodeChannelName(msg.channel);
-        var _list = msg.channel; //.replace(/ /g,'');
+        var _list = msg.channel;
         if (_list.length == 0) return;
         if (_list.indexOf("?") > -1) {
           _list = _list.substring(0, _list.indexOf("?"));
           msg.channel = _list;
         }
         coll = Functions.removeEmojis(_list).toLowerCase();
-        //coll = coll.replace(/_/g, "");
-
-        //coll = filter.clean(coll);
       } catch (e) {
         return;
       }
@@ -368,14 +350,13 @@ module.exports = function () {
         return;
       }
       var status = msg.status;
-      var channel = msg.channel; //.replace(/ /g,'');
+      var channel = msg.channel;
       if (status) {
         in_list = false;
         offline = true;
         if (channel != "") coll = channel;
         if (coll !== undefined) {
           coll = Functions.removeEmojis(coll).toLowerCase();
-          //coll = filter.clean(coll);
           db.collection("connected_users").findAndModify({
               query: {
                 _id: coll
@@ -591,7 +572,6 @@ module.exports = function () {
         msg.channel = Functions.encodeChannelName(msg.channel);
       }
       try {
-        //var _list = msg.channel.replace(/ /g,'');
         var _list = msg.channel;
         if (_list.length == 0) return;
         if (_list.indexOf("?") > -1) {
@@ -599,9 +579,6 @@ module.exports = function () {
           msg.channel = _list;
         }
         coll = Functions.removeEmojis(_list).toLowerCase();
-        //coll = coll.replace(/_/g, "");
-        //
-        //coll = filter.clean(coll);
       } catch (e) {
         return;
       }
@@ -621,12 +598,9 @@ module.exports = function () {
       if (obj.hasOwnProperty("channel")) {
         obj.channel = Functions.encodeChannelName(obj.channel);
         try {
-          coll = obj.channel.toLowerCase(); //.replace(/ /g,'');
+          coll = obj.channel.toLowerCase();
           if (coll.length == 0) return;
           coll = Functions.removeEmojis(coll).toLowerCase();
-          //coll = coll.replace(/_/g, "");
-
-          //coll = filter.clean(coll);
         } catch (e) {
           return;
         }
@@ -660,12 +634,9 @@ module.exports = function () {
           !arr.hasOwnProperty("offsiteAdd"))
       ) {
         try {
-          coll = arr.list; //.replace(/ /g,'');
+          coll = arr.list;
           if (coll.length == 0) return;
           coll = Functions.removeEmojis(coll).toLowerCase();
-          //coll = coll.replace(/_/g, "");
-
-          //coll = filter.clean(coll);
         } catch (e) {
           return;
         }
@@ -684,12 +655,9 @@ module.exports = function () {
         if (msg.hasOwnProperty("channel")) {
           msg.channel = Functions.encodeChannelName(msg.channel);
         }
-        coll = msg.channel.toLowerCase(); //.replace(/ /g,'');
+        coll = msg.channel.toLowerCase();
         if (coll.length == 0) return;
         coll = Functions.removeEmojis(coll).toLowerCase();
-        //coll = coll.replace(/_/g, "");
-
-        //coll = filter.clean(coll);
       } catch (e) {
         return;
       }
@@ -707,12 +675,9 @@ module.exports = function () {
       }
       if (coll !== undefined) {
         try {
-          coll = msg.channel.toLowerCase(); //.replace(/ /g,'');
+          coll = msg.channel.toLowerCase();
           if (coll.length == 0) return;
           coll = Functions.removeEmojis(coll).toLowerCase();
-          //coll = coll.replace(/_/g, "");
-
-          //coll = filter.clean(coll);
         } catch (e) {
           return;
         }
@@ -728,7 +693,6 @@ module.exports = function () {
       if (inp.hasOwnProperty("channel")) {
         inp.channel = Functions.encodeChannelName(inp.channel);
       }
-      //if(coll != undefined) coll.replace(/ /g,'');
       ListSettings.password(inp, coll, guid, offline, socket);
     });
 
@@ -741,7 +705,6 @@ module.exports = function () {
       if (list.hasOwnProperty("channel")) {
         list.channel = Functions.encodeChannelName(list.channel);
       }
-      //if(coll != undefined) coll.replace(/ /g,'');
       List.skip(list, guid, coll, offline, socket);
     });
 
@@ -755,7 +718,6 @@ module.exports = function () {
         conf.channel = Functions.encodeChannelName(conf.channel);
         coll = conf.channel;
       }
-      //if(coll != undefined) coll.replace(/ /g,'');
       ListSettings.conf_function(conf, coll, guid, offline, socket);
     });
 
@@ -768,12 +730,9 @@ module.exports = function () {
         msg.channel = Functions.encodeChannelName(msg.channel);
       }
       try {
-        coll = msg.channel.toLowerCase(); //.replace(/ /g,'');
+        coll = msg.channel.toLowerCase();
         if (coll.length == 0) return;
         coll = Functions.removeEmojis(coll).toLowerCase();
-        //coll = coll.replace(/_/g, "");
-
-        //coll = filter.clean(coll);
       } catch (e) {
         return;
       }
@@ -805,12 +764,9 @@ module.exports = function () {
         obj.channel !== undefined
       ) {
         try {
-          coll = obj.channel.toLowerCase(); //.replace(/ /g,'');
+          coll = obj.channel.toLowerCase();
           if (coll.length == 0) return;
           coll = Functions.removeEmojis(coll).toLowerCase();
-          //coll = coll.replace(/_/g, "");
-
-          //coll = filter.clean(coll);
         } catch (e) {
           return;
         }
@@ -864,9 +820,8 @@ module.exports = function () {
         msg.channel != "" &&
         typeof msg.channel == "string"
       ) {
-        coll = msg.channel; //.replace(/ /g,'');
+        coll = msg.channel;
         coll = Functions.removeEmojis(coll).toLowerCase();
-        //coll = filter.clean(coll);
         Functions.left_channel(
           coll,
           guid,
@@ -932,12 +887,9 @@ module.exports = function () {
       }
       if (coll !== undefined) {
         try {
-          coll = obj.channel.toLowerCase(); //.replace(/ /g,'');
+          coll = obj.channel.toLowerCase();
           if (coll.length == 0) return;
           coll = Functions.removeEmojis(coll).toLowerCase();
-          //coll = coll.replace(/_/g, "");
-
-          //coll = filter.clean(coll);
         } catch (e) {
           return;
         }
@@ -994,18 +946,4 @@ module.exports = function () {
       });
     });
   });
-
-  //send_ping();
 };
-
-/*
-function send_ping() {
-db.collection("connected_users").update({users: {$exists: true}}, {$set: {users: []}}, {multi: true}, function(err, docs){
-db.collection("connected_users").update({"_id": "total_users"}, {$add: {total_users: 0}}, {multi: true}, function(err, docs){
-db.collection("frontpage_lists").update({viewers: {$ne: 0}}, {$set: {"viewers": 0}}, {multi: true}, function(err, docs) {
-io.emit("self_ping");
-setTimeout(send_ping, 25000);
-});
-});
-});
-}*/

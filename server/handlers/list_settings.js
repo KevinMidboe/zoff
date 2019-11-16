@@ -31,13 +31,9 @@ function password(inp, coll, guid, offline, socket) {
       coll = inp.channel;
       if (coll.length == 0) return;
       coll = Functions.removeEmojis(coll).toLowerCase();
-      //coll = coll.replace(/_/g, "");
-
-      //coll = filter.clean(coll);
     } catch (e) {
       return;
     }
-    //coll = coll.replace(/ /g,'');
     uncrypted = pw;
     pw = Functions.hash_pass(Functions.decrypt_string(pw), true);
     Functions.check_inlist(coll, guid, socket, offline, undefined, "place 8");
@@ -129,12 +125,9 @@ function conf_function(params, coll, guid, offline, socket) {
   if (params !== undefined && params !== null && params !== "") {
     if (coll !== undefined) {
       try {
-        coll = params.channel; //.replace(/ /g,'');
+        coll = params.channel;
         if (coll.length == 0) return;
         coll = Functions.removeEmojis(coll).toLowerCase();
-        //coll = coll.replace(/_/g, "");
-
-        //coll = filter.clean(coll);
       } catch (e) {
         return;
       }

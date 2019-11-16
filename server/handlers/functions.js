@@ -100,9 +100,7 @@ function remove_name_from_db(guid, channel) {
             channels: channel
           }
         },
-        function (err, docs) {
-          //console.log("Pulled user from current channel");
-        }
+        function (err, docs) {}
       );
     }
   });
@@ -130,10 +128,6 @@ function isUrl(str) {
 
 function getSession(socket) {
   try {
-    /*var cookieParser = require("cookie-parser");
-        var cookie = require("cookie");
-        var parsedCookies = cookie.parse(socket.handshake.headers.cookie);
-        return parsedCookies["_uI"];*/
     if (socket.cookie_id == undefined) throw "Undefined error";
     return socket.cookie_id;
   } catch (e) {
@@ -143,7 +137,6 @@ function getSession(socket) {
       socket.handshake.address +
       socket.handshake.headers["accept-language"]
     );
-    //return "empty";
   }
 }
 
@@ -186,7 +179,6 @@ function check_inlist(coll, guid, socket, offline, callback, double_check) {
     if (typeof callback == "function") callback();
     return;
   }
-  //coll = coll.replace(/ /g,'');
   if (!offline && coll != undefined) {
     db.collection("connected_users").update({
         _id: coll
@@ -256,10 +248,6 @@ function check_inlist(coll, guid, socket, offline, callback, double_check) {
                           });
                         }
                       } else if (docs.length == 0) {
-                        //console.log("User doesn't have a name for some reason.");
-                        //console.log("guid", guid);
-                        //console.log("channel", coll);
-                        //console.log("Trying to get a chat-name");
                         Chat.get_name(guid, {
                           announce: false,
                           socket: socket,
@@ -323,7 +311,6 @@ function check_inlist(coll, guid, socket, offline, callback, double_check) {
         function (err, docs) {}
       );
     }
-    //
     if (coll != undefined && coll != "") {
       db.collection("connected_users").update({
           _id: "total_users"
@@ -649,7 +636,6 @@ function left_channel(coll, guid, short_id, in_list, socket, change, caller) {
     }
     return;
   }
-  //coll = coll.replace(/ /g,'');
   db.collection("connected_users").update({
       _id: coll
     }, {
@@ -720,7 +706,6 @@ function left_channel(coll, guid, short_id, in_list, socket, change, caller) {
             }
           },
           function (err, updated) {
-            //if(updated.nModified > 0) {
             db.collection("connected_users").update({
                 _id: "total_users"
               }, {
@@ -735,7 +720,6 @@ function left_channel(coll, guid, short_id, in_list, socket, change, caller) {
             } else {
               remove_from_chat_channel(coll, guid);
             }
-            //}
           }
         );
       }
