@@ -1,7 +1,9 @@
 <template>
   <div>
-    <h1>hello world</h1>
-
     <router-view />
   </div>
 </template>
+
+<style lang="scss">
+@import './styles/normalize';
+</style>
