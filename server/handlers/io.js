@@ -1,3 +1,7 @@
+import {
+  pathThumbnails
+} from "../settings/globals";
+
 var cookie = require("cookie");
 
 var Functions = require(pathThumbnails + "/handlers/functions.js");

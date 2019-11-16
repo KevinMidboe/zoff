@@ -5,13 +5,6 @@ var song_title = "";
 var paused = false;
 var intelligentList = false;
 var client = false;
-var _VERSION;
-try {
-  _VERSION = localStorage.getItem("VERSION");
-  if (_VERSION == null || _VERSION == undefined) throw "Some error";
-} catch (e) {
-  _VERSION = 6;
-}
 var SC_widget;
 var scUsingWidget = false;
 var zoff_api_token = "DwpnKVkaMH2HdcpJT2YPy783SY33byF5/32rbs0+xdU=";
@@ -79,10 +72,10 @@ var connection_options = {
 };
 
 var Crypt = {
-  crypt_pass: function(pass) {
+  crypt_pass: function (pass) {
     return pass;
   },
-  get_background_color: function() {
+  get_background_color: function () {
     return "dynamic";
   }
 };
@@ -97,12 +90,16 @@ function receiveMessage(event) {
   } else if (event.data == "reset") {
     window.setVolume(100);
   } else if (event.data == "get_info") {
-    window.parentWindow.postMessage(
-      { type: "np", title: song_title },
+    window.parentWindow.postMessage({
+        type: "np",
+        title: song_title
+      },
       window.parentOrigin
     );
-    window.parentWindow.postMessage(
-      { type: "controller", id: Hostcontroller.old_id },
+    window.parentWindow.postMessage({
+        type: "controller",
+        id: Hostcontroller.old_id
+      },
       window.parentOrigin
     );
     try {
@@ -117,11 +114,11 @@ function receiveMessage(event) {
 }
 
 window.addEventListener("message", receiveMessage, false);
-window.addEventListener("DOMContentLoaded", function() {});
+window.addEventListener("DOMContentLoaded", function () {});
 
 var Channel = {
-  set_title_width: function() {},
-  window_width_volume_slider: function() {}
+  set_title_width: function () {},
+  window_width_volume_slider: function () {}
 };
 
 function getSearch(elem) {
@@ -138,7 +135,7 @@ function getSearch(elem) {
   return result;
 }
 
-window.addEventListener("load", function() {
+window.addEventListener("load", function () {
   if (autoplay) {
     Helper.css("#player", "visibility", "hidden");
   }
@@ -156,8 +153,6 @@ window.addEventListener("load", function() {
   });
 
   add = "https://zoff.me";
-  //if(window.location.hostname == "localhost") add = "localhost";
-  //add = "localhost";
   socket = io.connect(
     "" + add,
     connection_options
@@ -167,7 +162,7 @@ window.addEventListener("load", function() {
     change_offline(true, false);
   }
 
-  socket.on("auth_required", function() {
+  socket.on("auth_required", function () {
     M.Modal.getInstance(document.getElementById("locked_channel")).open();
   });
 
@@ -175,9 +170,9 @@ window.addEventListener("load", function() {
     "https://zoff.me/" + chan.toLowerCase();
   document.querySelector(".channel-title").innerText = "/" + chan.toLowerCase();
 
-  socket.on("get_list", function() {
+  socket.on("get_list", function () {
     socket_connected = true;
-    setTimeout(function() {
+    setTimeout(function () {
       socket.emit("list", {
         version: VERSION,
         channel: chan.toLowerCase(),
@@ -186,13 +181,15 @@ window.addEventListener("load", function() {
     }, 1000);
   });
 
-  socket.on("self_ping", function() {
+  socket.on("self_ping", function () {
     if (chan != undefined && chan.toLowerCase() != "") {
-      socket.emit("self_ping", { channel: chan.toLowerCase() });
+      socket.emit("self_ping", {
+        channel: chan.toLowerCase()
+      });
     }
   });
 
-  socket.on("viewers", function(view) {
+  socket.on("viewers", function (view) {
     viewers = view;
 
     if (song_title !== undefined) Player.getTitle(song_title, viewers);
@@ -217,7 +214,6 @@ window.addEventListener("load", function() {
     .getElementById("playpause")
     .addEventListener("click", Playercontrols.play_pause);
   window.setVolume = setVolume;
-  //Helper.css("#controls", "background-color", color);
 
   document.querySelector("body").style.backgroundColor = color;
   if (embedOptions.hasOwnProperty("control") && embedOptions.control) {
@@ -227,14 +223,14 @@ window.addEventListener("load", function() {
   }
 });
 
-window.addEventListener("resize", function() {
+window.addEventListener("resize", function () {
   resizeFunction();
 });
 
 function resizePlaylistPlaying() {}
 
 function startWaitTimerPlay() {
-  setTimeout(function() {
+  setTimeout(function () {
     if (videoSource == "youtube") {
       Player.player.playVideo();
     } else if (videoSource == "soundcloud") {
@@ -256,7 +252,7 @@ function setup_now_playing_listener() {
 }
 
 function setup_list_listener() {
-  socket.on("channel", function(msg) {
+  socket.on("channel", function (msg) {
     Helper.addClass(".site_loader", "hide");
     List.channel_function(msg);
   });
@@ -268,6 +264,7 @@ function setVolume(val) {
 }
 
 function updateChromecastMetadata() {}
+
 function loadChromecastVideo() {}
 
 function toast(msg) {
@@ -364,7 +361,10 @@ function toast(msg) {
       break;
   }
   before_toast();
-  M.toast({ html: msg, displayLength: 4000 });
+  M.toast({
+    html: msg,
+    displayLength: 4000
+  });
 }
 
 function emit() {
@@ -396,23 +396,23 @@ function change_offline(enabled, already_offline) {
     }
   }
 
-  var mouseEnter = function(e) {
+  var mouseEnter = function (e) {
     Helper.removeClass("#seekToDuration", "hide");
   };
 
-  var mouseLeave = function(e) {
+  var mouseLeave = function (e) {
     dragging = false;
     Helper.addClass("#seekToDuration", "hide");
   };
 
-  var mouseDown = function(e) {
+  var mouseDown = function (e) {
     var acceptable = ["bar", "controls", "duration"];
     if (acceptable.indexOf(e.target.id) >= 0) {
       dragging = true;
     }
   };
 
-  var mouseUp = function(e) {
+  var mouseUp = function (e) {
     dragging = false;
   };
   if (enabled) {
@@ -467,68 +467,61 @@ function change_offline(enabled, already_offline) {
 }
 
 function before_toast() {
-  /*if($('.toast').length > 0) {
-    var toastElement = $('.toast').first()[0];
-    var toastInstance = toastElement.M_Toast;
-    toastInstance.remove();
-}*/
   M.Toast.dismissAll();
-  //Materialize.Toast.removeAll();
 }
 
 document.addEventListener(
   "click",
-  function(e) {
+  function (e) {
     handleEvent(e, e.target, false, "click");
   },
   false
 );
 
-addListener("click", ".channel-info-container", function(e) {
+addListener("click", ".channel-info-container", function (e) {
   this.preventDefault();
   Player.pauseVideo();
   window.open("https://zoff.me/" + chan.toLowerCase() + "/", "_blank");
 });
 
-addListener("click", ".vote-container", function(e) {
+addListener("click", ".vote-container", function (e) {
   var that = e;
   var id = that.getAttribute("data-video-id");
 
   List.vote(id, "pos");
 });
 
-addListener("click", ".prev_page", function(e) {
+addListener("click", ".prev_page", function (e) {
   event.preventDefault();
   List.dynamicContentPage(-1);
 });
 
-addListener("click", "#player_overlay", function(event) {
+addListener("click", "#player_overlay", function (event) {
   if (videoSource == "soundcloud") Playercontrols.play_pause();
 });
 
-addListener("click", ".next_page", function(e) {
+addListener("click", ".next_page", function (e) {
   event.preventDefault();
   List.dynamicContentPage(1);
 });
 
-addListener("click", ".prev", function(event) {
+addListener("click", ".prev", function (event) {
   this.preventDefault();
   if (!offline) return;
   List.skip(false);
 });
 
-addListener("click", ".skip", function(event) {
+addListener("click", ".skip", function (event) {
   this.preventDefault();
-  //if(!offline) return;
   List.skip(true);
 });
 
-addListener("click", ".last_page", function(e) {
+addListener("click", ".last_page", function (e) {
   event.preventDefault();
   List.dynamicContentPage(10);
 });
 
-addListener("click", ".first_page", function(e) {
+addListener("click", ".first_page", function (e) {
   event.preventDefault();
   List.dynamicContentPage(-10);
 });

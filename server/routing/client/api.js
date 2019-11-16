@@ -1,10 +1,12 @@
+import {
+  pathThumbnails
+} from "../settings/globals";
+
 var express = require("express");
 var router = express.Router();
 var path = require("path");
 var mongojs = require("mongojs");
-var ObjectId = mongojs.ObjectId;
 var token_db = mongojs("tokens");
-var cookieParser = require("cookie-parser");
 var db = require(pathThumbnails + "/handlers/db.js");
 var allowed_key;
 
@@ -23,7 +25,9 @@ var Frontpage = require(pathThumbnails + "/handlers/frontpage.js");
 var Search = require(pathThumbnails + "/handlers/search.js");
 var uniqid = require("uniqid");
 var Filter = require("bad-words");
-var filter = new Filter({ placeHolder: "x" });
+var filter = new Filter({
+  placeHolder: "x"
+});
 var paginate = require("mongojs-paginate");
 
 var _exports = {
@@ -73,15 +77,13 @@ var error = {
   },
   wrong_token: {
     status: 400,
-    error:
-      "You're using a faulty token. Try getting a new token, or send the request without the token.",
+    error: "You're using a faulty token. Try getting a new token, or send the request without the token.",
     success: false,
     results: []
   },
   tooMany: {
     status: 429,
-    error:
-      "You're doing too many requests, check header-field Retry-After for the wait-time left.",
+    error: "You're doing too many requests, check header-field Retry-After for the wait-time left.",
     success: false,
     results: []
   },
@@ -111,31 +113,34 @@ var error = {
   }
 };
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
   next(); // make sure we go to the next routes and don't stop here
 });
 
-router.route("/api/help").get(function(req, res) {
+router.route("/api/help").get(function (req, res) {
   res.redirect("https://github.com/zoff-music/zoff/blob/master/server/REST.md");
   return;
 });
 
-router.route("/api/frontpages").get(function(req, res) {
+router.route("/api/frontpages").get(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
   var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
   var guid = Functions.hash_pass(
     req.get("User-Agent") + ip + req.headers["accept-language"]
   );
 
-  checkTimeout(guid, res, false, "GET", function() {
-    Frontpage.get_frontpage_lists(function(err, docs) {
-      //db.collection("frontpage_lists").find({frontpage: true, count: {$gt: 0}}, function(err, docs) {
-      db.collection("connected_users").find({ _id: "total_users" }, function(
+  checkTimeout(guid, res, false, "GET", function () {
+    Frontpage.get_frontpage_lists(function (err, docs) {
+      db.collection("connected_users").find({
+        _id: "total_users"
+      }, function (
         err,
         tot
       ) {
@@ -151,13 +156,15 @@ router.route("/api/frontpages").get(function(req, res) {
   });
 });
 
-router.route("/api/frontpages").post(function(req, res) {
+router.route("/api/frontpages").post(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
   var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
   var guid = Functions.hash_pass(
     req.get("User-Agent") + ip + req.headers["accept-language"]
@@ -175,7 +182,9 @@ router.route("/api/frontpages").post(function(req, res) {
 
   token_db
     .collection("api_token")
-    .find({ token: token }, function(err, token_docs) {
+    .find({
+      token: token
+    }, function (err, token_docs) {
       var authorized = false;
       var origin;
       try {
@@ -191,13 +200,13 @@ router.route("/api/frontpages").post(function(req, res) {
       ) {
         authorized = true;
       }
-      checkOveruseApiToken(authorized, token_docs, res, function() {
-        checkTimeout(guid, res, authorized, "POST", function() {
-          Frontpage.get_frontpage_lists(function(err, docs) {
-            //db.collection("frontpage_lists").find({frontpage: true, count: {$gt: 0}}, function(err, docs) {
-            db.collection("connected_users").find(
-              { _id: "total_users" },
-              function(err, tot) {
+      checkOveruseApiToken(authorized, token_docs, res, function () {
+        checkTimeout(guid, res, authorized, "POST", function () {
+          Frontpage.get_frontpage_lists(function (err, docs) {
+            db.collection("connected_users").find({
+                _id: "total_users"
+              },
+              function (err, tot) {
                 var to_return = error.no_error;
                 to_return.results = {
                   channels: docs,
@@ -213,17 +222,19 @@ router.route("/api/frontpages").post(function(req, res) {
     });
 });
 
-router.route("/api/generate_name").get(function(req, res) {
+router.route("/api/generate_name").get(function (req, res) {
   Functions.generate_channel_name(res);
 });
 
-router.route("/api/list/:channel_name/:video_id").delete(function(req, res) {
+router.route("/api/list/:channel_name/:video_id").delete(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
   if (
     !req.body.hasOwnProperty("adminpass") ||
     !req.body.hasOwnProperty("userpass") ||
@@ -233,15 +244,13 @@ router.route("/api/list/:channel_name/:video_id").delete(function(req, res) {
     var result = {
       adminpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("adminpass")
-          ? typeof req.body.adminpass
-          : undefined
+        got: req.body.hasOwnProperty("adminpass") ?
+          typeof req.body.adminpass : undefined
       },
       userpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("userpass")
-          ? typeof req.body.userpass
-          : undefined
+        got: req.body.hasOwnProperty("userpass") ?
+          typeof req.body.userpass : undefined
       }
     };
     var to_send = error.formatting;
@@ -259,21 +268,21 @@ router.route("/api/list/:channel_name/:video_id").delete(function(req, res) {
       req.get("User-Agent") + ip + req.headers["accept-language"]
     );
     var adminpass =
-      req.body.adminpass == ""
-        ? ""
-        : Functions.hash_pass(
-            crypto
-              .createHash("sha256")
-              .update(req.body.adminpass, "utf8")
-              .digest("hex")
-          );
+      req.body.adminpass == "" ?
+      "" :
+      Functions.hash_pass(
+        crypto
+        .createHash("sha256")
+        .update(req.body.adminpass, "utf8")
+        .digest("hex")
+      );
     req.body.userpass =
-      req.body.userpass == ""
-        ? ""
-        : crypto
-            .createHash("sha256")
-            .update(req.body.userpass, "utf8")
-            .digest("base64");
+      req.body.userpass == "" ?
+      "" :
+      crypto
+      .createHash("sha256")
+      .update(req.body.userpass, "utf8")
+      .digest("base64");
     var userpass = req.body.userpass;
     var channel_name = cleanChannelName(req.params.channel_name);
     var video_id = req.params.video_id;
@@ -284,15 +293,13 @@ router.route("/api/list/:channel_name/:video_id").delete(function(req, res) {
     var result = {
       adminpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("adminpass")
-          ? typeof req.body.adminpass
-          : undefined
+        got: req.body.hasOwnProperty("adminpass") ?
+          typeof req.body.adminpass : undefined
       },
       userpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("userpass")
-          ? typeof req.body.userpass
-          : undefined
+        got: req.body.hasOwnProperty("userpass") ?
+          typeof req.body.userpass : undefined
       }
     };
     var to_send = error.formatting;
@@ -303,7 +310,7 @@ router.route("/api/list/:channel_name/:video_id").delete(function(req, res) {
 
   var cookie = req.cookies._uI;
 
-  Functions.getSessionAdminUser(cookie, channel_name, function(_u, _a) {
+  Functions.getSessionAdminUser(cookie, channel_name, function (_u, _a) {
     if (req.body.adminpass == "") {
       adminpass = Functions.hash_pass(_a);
     }
@@ -312,7 +319,9 @@ router.route("/api/list/:channel_name/:video_id").delete(function(req, res) {
     }
     token_db
       .collection("api_token")
-      .find({ token: token }, function(err, token_docs) {
+      .find({
+        token: token
+      }, function (err, token_docs) {
         var authorized = false;
         var origin;
         try {
@@ -328,13 +337,11 @@ router.route("/api/list/:channel_name/:video_id").delete(function(req, res) {
         ) {
           authorized = true;
         }
-        checkOveruseApiToken(authorized, token_docs, res, function() {
-          checkTimeout(guid, res, authorized, "DELETE", function() {
+        checkOveruseApiToken(authorized, token_docs, res, function () {
+          checkTimeout(guid, res, authorized, "DELETE", function () {
             if (token != "" && !authorized) {
-              //updateTimeout(guid, res, authorized, "DELETE", function(err, docs) {
               res.status(400).send(error.wrong_token);
               return;
-              //});
             } else {
               validateLogin(
                 adminpass,
@@ -342,14 +349,16 @@ router.route("/api/list/:channel_name/:video_id").delete(function(req, res) {
                 channel_name,
                 "delete",
                 res,
-                function(exists) {
+                function (exists) {
                   if (!exists) {
                     res.status(404).send(error.not_found.list);
                     return;
                   }
-                  db.collection(channel_name).find(
-                    { id: video_id, now_playing: false },
-                    function(err, docs) {
+                  db.collection(channel_name).find({
+                      id: video_id,
+                      now_playing: false
+                    },
+                    function (err, docs) {
                       if (docs.length == 0) {
                         res.status(404).send(error.not_found.local);
                         return;
@@ -359,9 +368,10 @@ router.route("/api/list/:channel_name/:video_id").delete(function(req, res) {
                         if (docs[0].type == "suggested") {
                           dont_increment = true;
                         }
-                        db.collection(channel_name).remove(
-                          { id: video_id },
-                          function(err, docs) {
+                        db.collection(channel_name).remove({
+                            id: video_id
+                          },
+                          function (err, docs) {
                             if (authorized) {
                               incrementToken(token);
                             }
@@ -370,25 +380,29 @@ router.route("/api/list/:channel_name/:video_id").delete(function(req, res) {
                               value: video_id
                             });
                             if (!dont_increment) {
-                              db.collection("frontpage_lists").update(
-                                { _id: channel_name, count: { $gt: 0 } },
-                                {
-                                  $inc: { count: -1 },
-                                  $set: { accessed: Functions.get_time() }
+                              db.collection("frontpage_lists").update({
+                                  _id: channel_name,
+                                  count: {
+                                    $gt: 0
+                                  }
+                                }, {
+                                  $inc: {
+                                    count: -1
+                                  },
+                                  $set: {
+                                    accessed: Functions.get_time()
+                                  }
+                                }, {
+                                  upsert: true
                                 },
-                                { upsert: true },
-                                function(err, docs) {
-                                  //updateTimeout(guid, res, authorized, "DELETE", function(err, docs) {
+                                function (err, docs) {
                                   res.status(200).send(error.no_error);
                                   return;
-                                  //});
                                 }
                               );
                             } else {
-                              //updateTimeout(guid, res, authorized, "DELETE", function(err, docs) {
                               res.status(200).send(error.no_error);
                               return;
-                              //});
                             }
                           }
                         );
@@ -404,13 +418,15 @@ router.route("/api/list/:channel_name/:video_id").delete(function(req, res) {
   });
 });
 
-router.route("/api/skip/:channel_name").post(function(req, res) {
+router.route("/api/skip/:channel_name").post(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
 
   var api_key = req.body.api_key;
   var guid = req.body.chat_name;
@@ -418,11 +434,13 @@ router.route("/api/skip/:channel_name").post(function(req, res) {
   var userpass = "";
   if (req.body.userpass && req.body.userpass != "")
     userpass = crypto
-      .createHash("sha256")
-      .update(Functions.decrypt_string(req.body.userpass))
-      .digest("base64");
+    .createHash("sha256")
+    .update(Functions.decrypt_string(req.body.userpass))
+    .digest("base64");
   if (allowed_key.indexOf(api_key) > -1 || allowed_key.indexOf("***") > -1) {
-    db.collection(channel_name + "_settings").find({ id: "config" }, function(
+    db.collection(channel_name + "_settings").find({
+      id: "config"
+    }, function (
       err,
       settings
     ) {
@@ -448,8 +466,10 @@ router.route("/api/skip/:channel_name").post(function(req, res) {
             false,
             true,
             undefined,
-            function() {
-              db.collection(channel_name).find({ now_playing: true }, function(
+            function () {
+              db.collection(channel_name).find({
+                now_playing: true
+              }, function (
                 err,
                 np
               ) {
@@ -462,7 +482,7 @@ router.route("/api/skip/:channel_name").post(function(req, res) {
                   false,
                   np[0].id,
                   [settings],
-                  function() {
+                  function () {
                     res.status(200).send(error.no_error);
                     return;
                   }
@@ -475,21 +495,28 @@ router.route("/api/skip/:channel_name").post(function(req, res) {
               });
             },
             "",
-            function() {
+            function () {
               res.status(429).send(error.tooMany);
               return;
             }
           );
         } else if (!Functions.contains(settings.skips, guid)) {
-          db.collection(channel_name + "_settings").update(
-            { id: "config" },
-            { $push: { skips: guid } },
-            function(err, d) {
+          db.collection(channel_name + "_settings").update({
+              id: "config"
+            }, {
+              $push: {
+                skips: guid
+              }
+            },
+            function (err, d) {
               var to_skip =
                 settings.strictSkipNumber - settings.skips.length - 1;
               _exports.sIO
                 .to(channel_name)
-                .emit("chat", { from: guid, msg: " voted to skip via API." });
+                .emit("chat", {
+                  from: guid,
+                  msg: " voted to skip via API."
+                });
               // VOTED TO SKIP
               var to_send = error.more_skip_needed;
               to_send.results = [to_skip];
@@ -517,13 +544,15 @@ router.route("/api/skip/:channel_name").post(function(req, res) {
   }
 });
 
-router.route("/api/conf/:channel_name").put(function(req, res) {
+router.route("/api/conf/:channel_name").put(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
 
   try {
     if (
@@ -551,21 +580,21 @@ router.route("/api/conf/:channel_name").put(function(req, res) {
       req.get("User-Agent") + ip + req.headers["accept-language"]
     );
     var adminpass =
-      req.body.adminpass == ""
-        ? ""
-        : Functions.hash_pass(
-            crypto
-              .createHash("sha256")
-              .update(req.body.adminpass, "utf8")
-              .digest("hex")
-          );
+      req.body.adminpass == "" ?
+      "" :
+      Functions.hash_pass(
+        crypto
+        .createHash("sha256")
+        .update(req.body.adminpass, "utf8")
+        .digest("hex")
+      );
     req.body.userpass =
-      req.body.userpass == ""
-        ? ""
-        : crypto
-            .createHash("sha256")
-            .update(req.body.userpass, "utf8")
-            .digest("base64");
+      req.body.userpass == "" ?
+      "" :
+      crypto
+      .createHash("sha256")
+      .update(req.body.userpass, "utf8")
+      .digest("base64");
     var userpass = req.body.userpass;
     var voting = req.body.vote;
     var addsongs = req.body.addsongs;
@@ -596,15 +625,13 @@ router.route("/api/conf/:channel_name").put(function(req, res) {
     var result = {
       adminpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("adminpass")
-          ? typeof req.body.adminpass
-          : undefined
+        got: req.body.hasOwnProperty("adminpass") ?
+          typeof req.body.adminpass : undefined
       },
       userpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("userpass")
-          ? typeof req.body.userpass
-          : undefined
+        got: req.body.hasOwnProperty("userpass") ?
+          typeof req.body.userpass : undefined
       },
       vote: {
         expected: "boolean",
@@ -612,21 +639,18 @@ router.route("/api/conf/:channel_name").put(function(req, res) {
       },
       addsongs: {
         expected: "boolean",
-        got: req.body.hasOwnProperty("addsongs")
-          ? typeof req.body.addsongs
-          : undefined
+        got: req.body.hasOwnProperty("addsongs") ?
+          typeof req.body.addsongs : undefined
       },
       longsongs: {
         expected: "boolean",
-        got: req.body.hasOwnProperty("longsongs")
-          ? typeof req.body.longsongs
-          : undefined
+        got: req.body.hasOwnProperty("longsongs") ?
+          typeof req.body.longsongs : undefined
       },
       frontpage: {
         expected: "boolean",
-        got: req.body.hasOwnProperty("frontpage")
-          ? typeof req.body.frontpage
-          : undefined
+        got: req.body.hasOwnProperty("frontpage") ?
+          typeof req.body.frontpage : undefined
       },
       skip: {
         expected: "boolean",
@@ -634,15 +658,13 @@ router.route("/api/conf/:channel_name").put(function(req, res) {
       },
       shuffle: {
         expected: "boolean",
-        got: req.body.hasOwnProperty("shuffle")
-          ? typeof req.body.shuffle
-          : undefined
+        got: req.body.hasOwnProperty("shuffle") ?
+          typeof req.body.shuffle : undefined
       },
       userpass_changed: {
         expected: "boolean",
-        got: req.body.hasOwnProperty("userpass_changed")
-          ? typeof req.body.userpass_changed
-          : undefined
+        got: req.body.hasOwnProperty("userpass_changed") ?
+          typeof req.body.userpass_changed : undefined
       }
     };
     var to_send = error.formatting;
@@ -651,7 +673,7 @@ router.route("/api/conf/:channel_name").put(function(req, res) {
     return;
   }
   var cookie = req.cookies._uI;
-  Functions.getSessionAdminUser(cookie, channel_name, function(_u, _a) {
+  Functions.getSessionAdminUser(cookie, channel_name, function (_u, _a) {
     if (req.body.adminpass == "") {
       adminpass = Functions.hash_pass(_a);
     }
@@ -660,7 +682,9 @@ router.route("/api/conf/:channel_name").put(function(req, res) {
     }
     token_db
       .collection("api_token")
-      .find({ token: token }, function(err, token_docs) {
+      .find({
+        token: token
+      }, function (err, token_docs) {
         var authorized = false;
         var origin;
         try {
@@ -676,13 +700,11 @@ router.route("/api/conf/:channel_name").put(function(req, res) {
         ) {
           authorized = true;
         }
-        checkOveruseApiToken(authorized, token_docs, res, function() {
-          checkTimeout(guid, res, authorized, "CONFIG", function() {
+        checkOveruseApiToken(authorized, token_docs, res, function () {
+          checkTimeout(guid, res, authorized, "CONFIG", function () {
             if (token != "" && !authorized) {
-              //updateTimeout(guid, res, authorized, "CONFIG", function(err, docs) {
               res.status(400).send(error.wrong_token);
               return;
-              //});
             } else {
               validateLogin(
                 adminpass,
@@ -690,7 +712,7 @@ router.route("/api/conf/:channel_name").put(function(req, res) {
                 channel_name,
                 "config",
                 res,
-                function(exists, conf) {
+                function (exists, conf) {
                   if (!exists && conf.length == 0) {
                     res.status(404).send(error.not_found.list);
                     return;
@@ -723,37 +745,38 @@ router.route("/api/conf/:channel_name").put(function(req, res) {
                   } else if (frontpage) {
                     obj["userpass"] = "";
                   }
-                  db.collection(channel_name + "_settings").update(
-                    { views: { $exists: true } },
-                    {
+                  db.collection(channel_name + "_settings").update({
+                      views: {
+                        $exists: true
+                      }
+                    }, {
                       $set: obj
                     },
-                    function(err, docs) {
+                    function (err, docs) {
                       if (obj.adminpass !== "") obj.adminpass = true;
                       if (obj.hasOwnProperty("userpass") && obj.userpass != "")
                         obj.userpass = true;
                       else obj.userpass = false;
                       io.to(channel_name).emit("conf", [obj]);
 
-                      db.collection("frontpage_lists").update(
-                        { _id: channel_name },
-                        {
+                      db.collection("frontpage_lists").update({
+                          _id: channel_name
+                        }, {
                           $set: {
                             frontpage: frontpage,
                             accessed: Functions.get_time()
                           }
+                        }, {
+                          upsert: true
                         },
-                        { upsert: true },
-                        function(err, docs) {
+                        function (err, docs) {
                           if (authorized) {
                             incrementToken(token);
                           }
-                          //updateTimeout(guid, res, authorized, "CONFIG", function(err, docs) {
                           var to_return = error.no_error;
                           to_return.results = [obj];
                           res.status(200).send(to_return);
                           return;
-                          //});
                         }
                       );
                     }
@@ -767,13 +790,15 @@ router.route("/api/conf/:channel_name").put(function(req, res) {
   });
 });
 
-router.route("/api/list/:channel_name/:video_id").put(function(req, res) {
+router.route("/api/list/:channel_name/:video_id").put(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
   try {
     if (
       !req.body.hasOwnProperty("adminpass") ||
@@ -792,21 +817,21 @@ router.route("/api/list/:channel_name/:video_id").put(function(req, res) {
       req.get("User-Agent") + ip + req.headers["accept-language"]
     );
     var adminpass =
-      req.body.adminpass == ""
-        ? ""
-        : Functions.hash_pass(
-            crypto
-              .createHash("sha256")
-              .update(req.body.adminpass, "utf8")
-              .digest("hex")
-          );
+      req.body.adminpass == "" ?
+      "" :
+      Functions.hash_pass(
+        crypto
+        .createHash("sha256")
+        .update(req.body.adminpass, "utf8")
+        .digest("hex")
+      );
     req.body.userpass =
-      req.body.userpass == ""
-        ? ""
-        : crypto
-            .createHash("sha256")
-            .update(req.body.userpass, "utf8")
-            .digest("base64");
+      req.body.userpass == "" ?
+      "" :
+      crypto
+      .createHash("sha256")
+      .update(req.body.userpass, "utf8")
+      .digest("base64");
     var userpass = req.body.userpass;
     var channel_name = cleanChannelName(req.params.channel_name);
     var video_id = req.params.video_id;
@@ -817,15 +842,13 @@ router.route("/api/list/:channel_name/:video_id").put(function(req, res) {
     var result = {
       adminpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("adminpass")
-          ? typeof req.body.adminpass
-          : undefined
+        got: req.body.hasOwnProperty("adminpass") ?
+          typeof req.body.adminpass : undefined
       },
       userpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("userpass")
-          ? typeof req.body.userpass
-          : undefined
+        got: req.body.hasOwnProperty("userpass") ?
+          typeof req.body.userpass : undefined
       }
     };
     var to_send = error.formatting;
@@ -834,7 +857,7 @@ router.route("/api/list/:channel_name/:video_id").put(function(req, res) {
     return;
   }
   var cookie = req.cookies._uI;
-  Functions.getSessionAdminUser(cookie, channel_name, function(_u, _a) {
+  Functions.getSessionAdminUser(cookie, channel_name, function (_u, _a) {
     if (req.body.adminpass == "") {
       adminpass = Functions.hash_pass(_a);
     }
@@ -843,7 +866,9 @@ router.route("/api/list/:channel_name/:video_id").put(function(req, res) {
     }
     token_db
       .collection("api_token")
-      .find({ token: token }, function(err, token_docs) {
+      .find({
+        token: token
+      }, function (err, token_docs) {
         var authorized = false;
         var origin;
         try {
@@ -859,13 +884,11 @@ router.route("/api/list/:channel_name/:video_id").put(function(req, res) {
         ) {
           authorized = true;
         }
-        checkOveruseApiToken(authorized, token_docs, res, function() {
-          checkTimeout(guid, res, authorized, "PUT", function() {
+        checkOveruseApiToken(authorized, token_docs, res, function () {
+          checkTimeout(guid, res, authorized, "PUT", function () {
             if (token != "" && !authorized) {
-              //updateTimeout(guid, res, authorized, "PUT", function(err, docs) {
               res.status(400).send(error.wrong_token);
               return;
-              //});
             } else {
               validateLogin(
                 adminpass,
@@ -873,14 +896,16 @@ router.route("/api/list/:channel_name/:video_id").put(function(req, res) {
                 channel_name,
                 "vote",
                 res,
-                function(exists) {
+                function (exists) {
                   if (!exists) {
                     res.status(404).send(error.not_found.list);
                     return;
                   }
-                  db.collection(channel_name).find(
-                    { id: video_id, now_playing: false },
-                    function(err, song) {
+                  db.collection(channel_name).find({
+                      id: video_id,
+                      now_playing: false
+                    },
+                    function (err, song) {
                       if (
                         song.length == 0 ||
                         (song.hasOwnProperty("type") &&
@@ -894,17 +919,21 @@ router.route("/api/list/:channel_name/:video_id").put(function(req, res) {
                       } else {
                         song[0].votes += 1;
                         song[0].guids.push(guid);
-                        db.collection(channel_name).update(
-                          { id: video_id },
-                          {
-                            $inc: { votes: 1 },
+                        db.collection(channel_name).update({
+                            id: video_id
+                          }, {
+                            $inc: {
+                              votes: 1
+                            },
                             $set: {
                               added: Functions.get_time(),
                               type: "video"
                             },
-                            $push: { guids: guid }
+                            $push: {
+                              guids: guid
+                            }
                           },
-                          function(err, success) {
+                          function (err, success) {
                             if (authorized) {
                               incrementToken(token);
                             }
@@ -916,13 +945,11 @@ router.route("/api/list/:channel_name/:video_id").put(function(req, res) {
                             List.getNextSong(
                               channel_name,
                               undefined,
-                              function() {
-                                //updateTimeout(guid, res, authorized, "PUT", function(err, docs) {
+                              function () {
                                 var to_return = error.no_error;
                                 to_return.results = song;
                                 res.status(200).send(to_return);
                                 return;
-                                //});
                               }
                             );
                           }
@@ -939,13 +966,15 @@ router.route("/api/list/:channel_name/:video_id").put(function(req, res) {
   });
 });
 
-router.route("/api/list/:channel_name/__np__").post(function(req, res) {
+router.route("/api/list/:channel_name/__np__").post(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
   try {
     var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     var guid = Functions.hash_pass(
@@ -955,12 +984,12 @@ router.route("/api/list/:channel_name/__np__").post(function(req, res) {
     var userpass;
     if (req.body.hasOwnProperty("userpass")) {
       req.body.userpass =
-        req.body.userpass == ""
-          ? ""
-          : crypto
-              .createHash("sha256")
-              .update(req.body.userpass, "utf8")
-              .digest("base64");
+        req.body.userpass == "" ?
+        "" :
+        crypto
+        .createHash("sha256")
+        .update(req.body.userpass, "utf8")
+        .digest("base64");
       userpass = req.body.userpass;
     } else {
       userpass = "";
@@ -973,9 +1002,8 @@ router.route("/api/list/:channel_name/__np__").post(function(req, res) {
     var result = {
       userpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("userpass")
-          ? typeof req.body.userpass
-          : undefined
+        got: req.body.hasOwnProperty("userpass") ?
+          typeof req.body.userpass : undefined
       }
     };
     var to_send = error.formatting;
@@ -984,14 +1012,15 @@ router.route("/api/list/:channel_name/__np__").post(function(req, res) {
     return;
   }
   var cookie = req.cookies._uI;
-  Functions.getSessionAdminUser(cookie, channel_name, function(_u, _a) {
+  Functions.getSessionAdminUser(cookie, channel_name, function (_u, _a) {
     if (req.body.userpass == "") {
-      //userpass = Functions.hash_pass(Functions.hash_pass(Functions.decrypt_string(_u)))
       userpass = _u;
     }
     token_db
       .collection("api_token")
-      .find({ token: token }, function(err, token_docs) {
+      .find({
+        token: token
+      }, function (err, token_docs) {
         var authorized = false;
         var origin;
         try {
@@ -1007,22 +1036,22 @@ router.route("/api/list/:channel_name/__np__").post(function(req, res) {
         ) {
           authorized = true;
         }
-        checkOveruseApiToken(authorized, token_docs, res, function() {
-          checkTimeout(guid, res, authorized, "POST", function() {
+        checkOveruseApiToken(authorized, token_docs, res, function () {
+          checkTimeout(guid, res, authorized, "POST", function () {
             if (token != "" && !authorized) {
-              //updateTimeout(guid, res, authorized, "POST", function(err, docs) {
               res.status(400).send(error.wrong_token);
               return;
-              //});
             } else {
-              db.collection(channel_name).find(
-                { now_playing: true },
+              db.collection(channel_name).find({
+                  now_playing: true
+                },
                 projects.toShowChannel,
-                function(err, list) {
+                function (err, list) {
                   if (list.length > 0) {
-                    db.collection(channel_name + "_settings").find(
-                      { id: "config" },
-                      function(err, conf) {
+                    db.collection(channel_name + "_settings").find({
+                        id: "config"
+                      },
+                      function (err, conf) {
                         if (authorized) {
                           incrementToken(token);
                         }
@@ -1037,7 +1066,6 @@ router.route("/api/list/:channel_name/__np__").post(function(req, res) {
                           res.status(403).send(error.not_authenticated);
                           return;
                         }
-                        //updateTimeout(guid, res, authorized, "POST", function(err, docs) {
                         var to_return = error.no_error;
                         if (list[0].source == undefined) {
                           list[0].source = "youtube";
@@ -1051,7 +1079,6 @@ router.route("/api/list/:channel_name/__np__").post(function(req, res) {
                         to_return.results = list;
                         res.status(200).send(to_return);
                         return;
-                        //});
                       }
                     );
                   } else {
@@ -1067,13 +1094,15 @@ router.route("/api/list/:channel_name/__np__").post(function(req, res) {
   });
 });
 
-router.route("/api/search/:channel_name/").post(function(req, res) {
+router.route("/api/search/:channel_name/").post(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
   try {
     var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     var guid = Functions.hash_pass(
@@ -1083,12 +1112,12 @@ router.route("/api/search/:channel_name/").post(function(req, res) {
     var userpass;
     if (req.body.hasOwnProperty("userpass")) {
       req.body.userpass =
-        req.body.userpass == ""
-          ? ""
-          : crypto
-              .createHash("sha256")
-              .update(req.body.userpass, "utf8")
-              .digest("base64");
+        req.body.userpass == "" ?
+        "" :
+        crypto
+        .createHash("sha256")
+        .update(req.body.userpass, "utf8")
+        .digest("base64");
       userpass = req.body.userpass;
     } else {
       userpass = "";
@@ -1117,9 +1146,8 @@ router.route("/api/search/:channel_name/").post(function(req, res) {
     var result = {
       userpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("userpass")
-          ? typeof req.body.userpass
-          : undefined
+        got: req.body.hasOwnProperty("userpass") ?
+          typeof req.body.userpass : undefined
       }
     };
     var to_send = error.formatting;
@@ -1128,14 +1156,15 @@ router.route("/api/search/:channel_name/").post(function(req, res) {
     return;
   }
   var cookie = req.cookies._uI;
-  Functions.getSessionAdminUser(cookie, channel_name, function(_u, _a) {
+  Functions.getSessionAdminUser(cookie, channel_name, function (_u, _a) {
     if (req.body.userpass == "") {
-      //userpass = Functions.hash_pass(Functions.hash_pass(Functions.decrypt_string(_u)))
       userpass = _u;
     }
     token_db
       .collection("api_token")
-      .find({ token: token }, function(err, token_docs) {
+      .find({
+        token: token
+      }, function (err, token_docs) {
         var authorized = false;
         var origin;
         try {
@@ -1151,11 +1180,12 @@ router.route("/api/search/:channel_name/").post(function(req, res) {
         ) {
           authorized = true;
         }
-        checkOveruseApiToken(authorized, token_docs, res, function() {
-          checkTimeout(guid, res, authorized, "POST", function() {
-            db.collection(channel_name + "_settings").find(
-              { id: "config" },
-              function(err, conf) {
+        checkOveruseApiToken(authorized, token_docs, res, function () {
+          checkTimeout(guid, res, authorized, "POST", function () {
+            db.collection(channel_name + "_settings").find({
+                id: "config"
+              },
+              function (err, conf) {
                 if (authorized) {
                   incrementToken(token);
                 }
@@ -1183,7 +1213,10 @@ router.route("/api/search/:channel_name/").post(function(req, res) {
                   queryObject.title.$options = "i";
                 }
                 var query = db.collection(channel_name).find(queryObject);
-                paginate(query, { limit: 30, page: page }, function(
+                paginate(query, {
+                  limit: 30,
+                  page: page
+                }, function (
                   err,
                   result
                 ) {
@@ -1211,13 +1244,15 @@ router.route("/api/search/:channel_name/").post(function(req, res) {
   });
 });
 
-router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
+router.route("/api/list/:channel_name/:video_id").post(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
   var fetch_only = false;
   if (req.body.hasOwnProperty("fetch_song")) {
     fetch_only = true;
@@ -1249,12 +1284,12 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
     var userpass;
     if (req.body.hasOwnProperty("userpass")) {
       req.body.userpass =
-        req.body.userpass == ""
-          ? ""
-          : crypto
-              .createHash("sha256")
-              .update(req.body.userpass, "utf8")
-              .digest("base64");
+        req.body.userpass == "" ?
+        "" :
+        crypto
+        .createHash("sha256")
+        .update(req.body.userpass, "utf8")
+        .digest("base64");
       userpass = req.body.userpass;
     } else {
       userpass = "";
@@ -1263,14 +1298,14 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
     var video_id = req.params.video_id;
     if (!fetch_only) {
       var adminpass =
-        req.body.adminpass == ""
-          ? ""
-          : Functions.hash_pass(
-              crypto
-                .createHash("sha256")
-                .update(req.body.adminpass, "utf8")
-                .digest("hex")
-            );
+        req.body.adminpass == "" ?
+        "" :
+        Functions.hash_pass(
+          crypto
+          .createHash("sha256")
+          .update(req.body.adminpass, "utf8")
+          .digest("hex")
+        );
       var duration = parseInt(req.body.duration);
       var start_time = parseInt(req.body.start_time);
       var end_time = parseInt(req.body.end_time);
@@ -1297,45 +1332,36 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
     var result = {
       adminpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("adminpass")
-          ? typeof req.body.adminpass
-          : undefined
+        got: req.body.hasOwnProperty("adminpass") ?
+          typeof req.body.adminpass : undefined
       },
       userpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("userpass")
-          ? typeof req.body.userpass
-          : undefined
+        got: req.body.hasOwnProperty("userpass") ?
+          typeof req.body.userpass : undefined
       },
       title: {
         expected: "string",
-        got: req.body.hasOwnProperty("title")
-          ? typeof req.body.title
-          : undefined
+        got: req.body.hasOwnProperty("title") ?
+          typeof req.body.title : undefined
       },
       start_time: {
         expected: "number or string that can be cast to int",
-        got: !req.body.hasOwnProperty("start_time")
-          ? undefined
-          : isNaN(req.body.start_time)
-          ? "uncastable string"
-          : typeof req.body.start_time
+        got: !req.body.hasOwnProperty("start_time") ?
+          undefined : isNaN(req.body.start_time) ?
+          "uncastable string" : typeof req.body.start_time
       },
       end_time: {
         expected: "number or string that can be cast to int",
-        got: !req.body.hasOwnProperty("end_time")
-          ? undefined
-          : isNaN(req.body.end_time)
-          ? "uncastable string"
-          : typeof req.body.end_time
+        got: !req.body.hasOwnProperty("end_time") ?
+          undefined : isNaN(req.body.end_time) ?
+          "uncastable string" : typeof req.body.end_time
       },
       duration: {
         expected: "number or string that can be cast to int",
-        got: !req.body.hasOwnProperty("duration")
-          ? undefined
-          : isNaN(req.body.duration)
-          ? "uncastable string"
-          : typeof req.body.duration
+        got: !req.body.hasOwnProperty("duration") ?
+          undefined : isNaN(req.body.duration) ?
+          "uncastable string" : typeof req.body.duration
       }
     };
     var to_send = error.formatting;
@@ -1344,7 +1370,7 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
     return;
   }
   var cookie = req.cookies._uI;
-  Functions.getSessionAdminUser(cookie, channel_name, function(_u, _a) {
+  Functions.getSessionAdminUser(cookie, channel_name, function (_u, _a) {
     if (req.body.adminpass == "") {
       adminpass = Functions.hash_pass(_a);
     }
@@ -1353,7 +1379,9 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
     }
     token_db
       .collection("api_token")
-      .find({ token: token }, function(err, token_docs) {
+      .find({
+        token: token
+      }, function (err, token_docs) {
         var authorized = false;
         var origin;
         try {
@@ -1369,13 +1397,11 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
         ) {
           authorized = true;
         }
-        checkOveruseApiToken(authorized, token_docs, res, function() {
-          checkTimeout(guid, res, authorized, "POST", function() {
+        checkOveruseApiToken(authorized, token_docs, res, function () {
+          checkTimeout(guid, res, authorized, "POST", function () {
             if (token != "" && !authorized) {
-              //updateTimeout(guid, res, authorized, "POST", function(err, docs) {
               res.status(400).send(error.wrong_token);
               return;
-              //});
             } else {
               var type = fetch_only ? "fetch_song" : "add";
               validateLogin(
@@ -1384,8 +1410,10 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
                 channel_name,
                 type,
                 res,
-                function(exists, conf, authenticated) {
-                  db.collection(channel_name).find({ id: video_id }, function(
+                function (exists, conf, authenticated) {
+                  db.collection(channel_name).find({
+                    id: video_id
+                  }, function (
                     err,
                     result
                   ) {
@@ -1395,9 +1423,10 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
                         res.status(404).send(error.not_found.local);
                         return;
                       }
-                      db.collection(channel_name).find(
-                        { now_playing: true },
-                        function(err, now_playing) {
+                      db.collection(channel_name).find({
+                          now_playing: true
+                        },
+                        function (err, now_playing) {
                           var set_np = false;
                           if (now_playing.length == 0 && authenticated) {
                             set_np = true;
@@ -1431,7 +1460,7 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
                               new_song.thumbnail =
                                 "https://img.youtube.com/vi/404_notfound/mqdefault.jpg";
                             }
-                            runFunction = function(
+                            runFunction = function (
                               new_song,
                               foo_2,
                               foo_3,
@@ -1441,10 +1470,10 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
                             };
                           } else if (source == "youtube")
                             new_song.thumbnail =
-                              "https://img.youtube.com/vi/" +
-                              new_song.id +
-                              "/mqdefault.jpg";
-                          runFunction(new_song, channel_name, false, function(
+                            "https://img.youtube.com/vi/" +
+                            new_song.id +
+                            "/mqdefault.jpg";
+                          runFunction(new_song, channel_name, false, function (
                             element,
                             found
                           ) {
@@ -1453,9 +1482,10 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
                               return;
                             }
                             new_song = element;
-                            db.collection("frontpage_lists").find(
-                              { _id: channel_name },
-                              function(err, count) {
+                            db.collection("frontpage_lists").find({
+                                _id: channel_name
+                              },
+                              function (err, count) {
                                 var create_frontpage_lists = false;
                                 if (count.length == 0) {
                                   create_frontpage_lists = true;
@@ -1478,33 +1508,37 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
                                   };
                                   db.collection(
                                     channel_name + "_settings"
-                                  ).insert(configs, function(err, docs) {
+                                  ).insert(configs, function (err, docs) {
                                     io.to(channel_name).emit("conf", configs);
                                   });
                                 }
-                                db.collection(channel_name).update(
-                                  { id: new_song.id },
-                                  new_song,
-                                  { upsert: true },
-                                  function(err, success) {
+                                db.collection(channel_name).update({
+                                    id: new_song.id
+                                  },
+                                  new_song, {
+                                    upsert: true
+                                  },
+                                  function (err, success) {
                                     if (authorized) {
                                       incrementToken(token);
                                     }
                                     if (create_frontpage_lists) {
-                                      db.collection("frontpage_lists").update(
-                                        {
+                                      db.collection("frontpage_lists").update({
                                           _id: channel_name,
                                           count: authenticated ? 1 : 0,
                                           frontpage: true,
                                           accessed: Functions.get_time(),
                                           viewers: 1
+                                        }, {
+                                          upsert: true
                                         },
-                                        { upsert: true },
-                                        function(err, docs) {
+                                        function (err, docs) {
                                           if (authenticated) {
                                             io.to(channel_name).emit(
-                                              "channel",
-                                              { type: "added", value: new_song }
+                                              "channel", {
+                                                type: "added",
+                                                value: new_song
+                                              }
                                             );
                                           } else {
                                             io.to(channel_name).emit(
@@ -1525,16 +1559,16 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
                                       );
                                     } else if (set_np) {
                                       var thumbnail =
-                                        req.body.thumbnail != undefined
-                                          ? req.body.thumbnail
-                                          : undefined;
+                                        req.body.thumbnail != undefined ?
+                                        req.body.thumbnail :
+                                        undefined;
                                       Frontpage.update_frontpage(
                                         channel_name,
                                         video_id,
                                         title,
                                         thumbnail,
                                         source,
-                                        function() {
+                                        function () {
                                           io.to(channel_name).emit("np", {
                                             np: [new_song],
                                             conf: [conf]
@@ -1551,16 +1585,20 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
                                         }
                                       );
                                     } else {
-                                      db.collection("frontpage_lists").update(
-                                        { _id: channel_name },
-                                        {
-                                          $inc: { count: authenticated ? 1 : 0 }
+                                      db.collection("frontpage_lists").update({
+                                          _id: channel_name
+                                        }, {
+                                          $inc: {
+                                            count: authenticated ? 1 : 0
+                                          }
                                         },
-                                        function(err, docs) {
+                                        function (err, docs) {
                                           if (authenticated) {
                                             io.to(channel_name).emit(
-                                              "channel",
-                                              { type: "added", value: new_song }
+                                              "channel", {
+                                                type: "added",
+                                                value: new_song
+                                              }
                                             );
                                           } else {
                                             io.to(channel_name).emit(
@@ -1606,17 +1644,18 @@ router.route("/api/list/:channel_name/:video_id").post(function(req, res) {
   });
 });
 
-router.route("/api/list/:channel_name").get(function(req, res) {
+router.route("/api/list/:channel_name").get(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
   var channel_name = cleanChannelName(req.params.channel_name);
   db.collection(channel_name).aggregate(
-    [
-      {
+    [{
         $match: {
           type: {
             $ne: "suggested"
@@ -1626,19 +1665,27 @@ router.route("/api/list/:channel_name").get(function(req, res) {
       {
         $project: projects.project_object
       },
-      { $sort: { now_playing: -1, votes: -1, added: 1, title: 1 } }
+      {
+        $sort: {
+          now_playing: -1,
+          votes: -1,
+          added: 1,
+          title: 1
+        }
+      }
     ],
-    function(err, docs) {
+    function (err, docs) {
       var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
       var guid = Functions.hash_pass(
         req.get("User-Agent") + ip + req.headers["accept-language"]
       );
       //db.collection(channel_name).find({views: {$exists: false}}, projects.toShowChannel, function(err, docs) {
-      checkTimeout(guid, res, false, "GET", function() {
+      checkTimeout(guid, res, false, "GET", function () {
         if (docs.length > 0) {
-          db.collection(channel_name + "_settings").find(
-            { id: "config" },
-            function(err, conf) {
+          db.collection(channel_name + "_settings").find({
+              id: "config"
+            },
+            function (err, conf) {
               if (conf.length == 0) {
                 res.status(404).send(error.not_found.list);
                 return;
@@ -1662,32 +1709,39 @@ router.route("/api/list/:channel_name").get(function(req, res) {
   );
 });
 
-router.route("/api/list/:channel_name/:video_id").get(function(req, res) {
+router.route("/api/list/:channel_name/:video_id").get(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
   var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
   var guid = Functions.hash_pass(
     req.get("User-Agent") + ip + req.headers["accept-language"]
   );
 
-  checkTimeout(guid, res, false, "GET", function() {
+  checkTimeout(guid, res, false, "GET", function () {
     var channel_name = cleanChannelName(req.params.channel_name);
     var video_id = req.params.video_id;
-    var searchQuery = { id: video_id };
+    var searchQuery = {
+      id: video_id
+    };
     if (video_id == "__np__") {
-      searchQuery = { now_playing: true };
+      searchQuery = {
+        now_playing: true
+      };
     }
     db.collection(channel_name).find(
       searchQuery,
       projects.toShowChannel,
-      function(err, docs) {
-        db.collection(channel_name + "_settings").find(
-          { id: "config" },
-          function(err, conf) {
+      function (err, docs) {
+        db.collection(channel_name + "_settings").find({
+            id: "config"
+          },
+          function (err, conf) {
             if (conf.length == 0) {
               res.status(404).send(error.not_found.list);
               return;
@@ -1720,23 +1774,24 @@ router.route("/api/list/:channel_name/:video_id").get(function(req, res) {
   });
 });
 
-router.route("/api/conf/:channel_name").get(function(req, res) {
+router.route("/api/conf/:channel_name").get(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
   var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
   var guid = Functions.hash_pass(
     req.get("User-Agent") + ip + req.headers["accept-language"]
   );
 
-  checkTimeout(guid, res, false, "GET", function() {
+  checkTimeout(guid, res, false, "GET", function () {
     var channel_name = cleanChannelName(req.params.channel_name);
     db.collection(channel_name + "_settings").aggregate(
-      [
-        {
+      [{
           $match: {
             id: "config"
           }
@@ -1745,7 +1800,7 @@ router.route("/api/conf/:channel_name").get(function(req, res) {
           $project: projects.toShowConfig
         }
       ],
-      function(err, docs) {
+      function (err, docs) {
         if (
           docs.length > 0 &&
           (docs[0].userpass == "" || docs[0].userpass == undefined)
@@ -1780,13 +1835,15 @@ router.route("/api/conf/:channel_name").get(function(req, res) {
   });
 });
 
-router.route("/api/conf/:channel_name").post(function(req, res) {
+router.route("/api/conf/:channel_name").post(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
 
   try {
     var token = "";
@@ -1801,12 +1858,12 @@ router.route("/api/conf/:channel_name").post(function(req, res) {
     var userpass;
     if (req.body.hasOwnProperty("userpass")) {
       req.body.userpass =
-        req.body.userpass == ""
-          ? ""
-          : crypto
-              .createHash("sha256")
-              .update(req.body.userpass, "utf8")
-              .digest("base64");
+        req.body.userpass == "" ?
+        "" :
+        crypto
+        .createHash("sha256")
+        .update(req.body.userpass, "utf8")
+        .digest("base64");
       userpass = req.body.userpass;
     } else {
       userpass = "";
@@ -1815,9 +1872,8 @@ router.route("/api/conf/:channel_name").post(function(req, res) {
     var result = {
       userpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("userpass")
-          ? typeof req.body.userpass
-          : undefined
+        got: req.body.hasOwnProperty("userpass") ?
+          typeof req.body.userpass : undefined
       }
     };
     var to_send = error.formatting;
@@ -1826,7 +1882,7 @@ router.route("/api/conf/:channel_name").post(function(req, res) {
     return;
   }
   var cookie = req.cookies._uI;
-  Functions.getSessionAdminUser(cookie, channel_name, function(_u, _a) {
+  Functions.getSessionAdminUser(cookie, channel_name, function (_u, _a) {
     if (req.body.userpass == "") {
       userpass = crypto
         .createHash("sha256")
@@ -1836,7 +1892,9 @@ router.route("/api/conf/:channel_name").post(function(req, res) {
 
     token_db
       .collection("api_token")
-      .find({ token: token }, function(err, token_docs) {
+      .find({
+        token: token
+      }, function (err, token_docs) {
         var authorized = false;
         var origin;
         try {
@@ -1852,8 +1910,8 @@ router.route("/api/conf/:channel_name").post(function(req, res) {
         ) {
           authorized = true;
         }
-        checkOveruseApiToken(authorized, token_docs, res, function() {
-          checkTimeout(guid, res, authorized, "POST", function() {
+        checkOveruseApiToken(authorized, token_docs, res, function () {
+          checkTimeout(guid, res, authorized, "POST", function () {
             if (token != "" && !authorized) {
               //updateTimeout(guid, res, authorized, "DELETE", function(err, docs) {
               res.status(400).send(error.wrong_token);
@@ -1861,8 +1919,7 @@ router.route("/api/conf/:channel_name").post(function(req, res) {
               //});
             } else {
               db.collection(channel_name + "_settings").aggregate(
-                [
-                  {
+                [{
                     $match: {
                       id: "config"
                     }
@@ -1871,7 +1928,7 @@ router.route("/api/conf/:channel_name").post(function(req, res) {
                     $project: projects.toShowConfig
                   }
                 ],
-                function(err, docs) {
+                function (err, docs) {
                   if (docs.length > 0 && docs[0].userpass == userpass) {
                     var conf = docs[0];
                     if (conf.adminpass != "") {
@@ -1914,7 +1971,9 @@ function checkOveruseApiToken(authorized, token_docs, res, callback) {
     return;
   }
 
-  db.collection("timeout_api").find({ guid: token_docs[0].token }, function(
+  db.collection("timeout_api").find({
+    guid: token_docs[0].token
+  }, function (
     e,
     doc
   ) {
@@ -1925,37 +1984,48 @@ function checkOveruseApiToken(authorized, token_docs, res, callback) {
       var now = new Date();
       var retry_in = (date.getTime() - now.getTime()) / 1000;
       if (this_doc.used >= token_docs[0].limit && retry_in > 0) {
-        res.header({ "Retry-After": retry_in });
+        res.header({
+          "Retry-After": retry_in
+        });
         res.status(429).send(error.tooMany);
         return;
       } else {
         var updateElement = {};
         if (retry_in <= 0) {
-          updateElement["$set"] = { createdAt: new Date(), used: 1 };
+          updateElement["$set"] = {
+            createdAt: new Date(),
+            used: 1
+          };
         } else {
-          updateElement["$inc"] = { used: 1 };
+          updateElement["$inc"] = {
+            used: 1
+          };
         }
-        db.collection("timeout_api").update(
-          { guid: token_docs[0].token },
+        db.collection("timeout_api").update({
+            guid: token_docs[0].token
+          },
           updateElement,
-          function(e, d) {
+          function (e, d) {
             callback();
           }
         );
       }
     } else {
-      db.collection("timeout_api").update(
-        { guid: token_docs[0].token },
-        {
+      db.collection("timeout_api").update({
+          guid: token_docs[0].token
+        }, {
           $set: {
             guid: token_docs[0].token,
             createdAt: new Date(),
             type: "ALL"
           },
-          $inc: { used: 1 }
+          $inc: {
+            used: 1
+          }
+        }, {
+          upsert: true
         },
-        { upsert: true },
-        function(e, d) {
+        function (e, d) {
           callback();
         }
       );
@@ -1963,13 +2033,15 @@ function checkOveruseApiToken(authorized, token_docs, res, callback) {
   });
 }
 
-router.route("/api/list/:channel_name").post(function(req, res) {
+router.route("/api/list/:channel_name").post(function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header({ "Content-Type": "application/json" });
+  res.header({
+    "Content-Type": "application/json"
+  });
   try {
     var token = "";
     if (req.body.hasOwnProperty("token")) {
@@ -1983,27 +2055,22 @@ router.route("/api/list/:channel_name").post(function(req, res) {
     var userpass;
     if (req.body.hasOwnProperty("userpass")) {
       req.body.userpass =
-        req.body.userpass == ""
-          ? ""
-          : crypto
-              .createHash("sha256")
-              .update(req.body.userpass, "utf8")
-              .digest("base64");
+        req.body.userpass == "" ?
+        "" :
+        crypto
+        .createHash("sha256")
+        .update(req.body.userpass, "utf8")
+        .digest("base64");
       userpass = req.body.userpass;
     } else {
       userpass = "";
     }
-
-    /*if(typeof(userpass) != "string") {
-            throw "Wrong format";
-        }*/
   } catch (e) {
     var result = {
       userpass: {
         expected: "string",
-        got: req.body.hasOwnProperty("userpass")
-          ? typeof req.body.userpass
-          : undefined
+        got: req.body.hasOwnProperty("userpass") ?
+          typeof req.body.userpass : undefined
       }
     };
     var to_send = error.formatting;
@@ -2013,15 +2080,16 @@ router.route("/api/list/:channel_name").post(function(req, res) {
     return;
   }
   var cookie = req.cookies._uI;
-  Functions.getSessionAdminUser(cookie, channel_name, function(_u, _a) {
+  Functions.getSessionAdminUser(cookie, channel_name, function (_u, _a) {
     if (req.body.userpass == "") {
-      //userpass = Functions.hash_pass(Functions.hash_pass(Functions.decrypt_string(_u)))
       userpass = _u;
     }
 
     token_db
       .collection("api_token")
-      .find({ token: token }, function(err, token_docs) {
+      .find({
+        token: token
+      }, function (err, token_docs) {
         var authorized = false;
         var origin;
         try {
@@ -2037,32 +2105,39 @@ router.route("/api/list/:channel_name").post(function(req, res) {
         ) {
           authorized = true;
         }
-        checkOveruseApiToken(authorized, token_docs, res, function() {
-          checkTimeout(guid, res, authorized, "POST", function() {
+        checkOveruseApiToken(authorized, token_docs, res, function () {
+          checkTimeout(guid, res, authorized, "POST", function () {
             if (token != "" && !authorized) {
-              //updateTimeout(guid, res, authorized, "POST", function(err, docs) {
               res.status(400).send(error.wrong_token);
               return;
-              //});
             } else {
               db.collection(channel_name).aggregate(
-                [
-                  {
+                [{
                     $match: {
                       type: {
                         $ne: "suggested"
                       }
                     }
                   },
-                  { $project: projects.project_object },
-                  { $sort: { now_playing: -1, votes: -1, added: 1, title: 1 } }
+                  {
+                    $project: projects.project_object
+                  },
+                  {
+                    $sort: {
+                      now_playing: -1,
+                      votes: -1,
+                      added: 1,
+                      title: 1
+                    }
+                  }
                 ],
-                function(err, list) {
+                function (err, list) {
                   //db.collection(channel_name).find({views: {$exists: false}}, projects.toShowChannel, function(err, list) {
                   if (list.length > 0) {
-                    db.collection(channel_name + "_settings").find(
-                      { id: "config" },
-                      function(err, conf) {
+                    db.collection(channel_name + "_settings").find({
+                        id: "config"
+                      },
+                      function (err, conf) {
                         if (conf.length == 0) {
                           res.status(404).send(error.not_found.list);
                           return;
@@ -2101,10 +2176,16 @@ router.route("/api/list/:channel_name").post(function(req, res) {
 function incrementToken(token) {
   token_db
     .collection("api_token")
-    .update({ token: token }, { $inc: { usage: 1 } }, function(err, doc) {});
+    .update({
+      token: token
+    }, {
+      $inc: {
+        usage: 1
+      }
+    }, function (err, doc) {});
 }
 
-router.route("/api/color").post(function(req, res) {
+router.route("/api/color").post(function (req, res) {
   try {
     var origin = req
       .get("origin")
@@ -2132,7 +2213,7 @@ router.route("/api/color").post(function(req, res) {
   List.sendColor(false, undefined, req.body.id, true, res);
 });
 
-router.route("/api/imageblob").post(function(req, res) {
+router.route("/api/imageblob").post(function (req, res) {
   var Jimp = require("jimp");
   try {
     var origin = req
@@ -2157,7 +2238,7 @@ router.route("/api/imageblob").post(function(req, res) {
 
   Jimp.read(
     "https://img.youtube.com/vi/" + req.body.id + "/mqdefault.jpg",
-    function(err, image) {
+    function (err, image) {
       if (err) {
         console.log(err);
         res.sendStatus(404);
@@ -2170,7 +2251,7 @@ router.route("/api/imageblob").post(function(req, res) {
             pathThumbnails,
             "/public/assets/images/thumbnails/" + req.body.id + ".jpg"
           ),
-          function(e, r) {
+          function (e, r) {
             res.status(200).send(req.body.id + ".jpg");
             return;
           }
@@ -2193,7 +2274,7 @@ try {
 
   router
     .route("/api/apply")
-    .post(recaptcha.middleware.verify, function(req, res) {
+    .post(recaptcha.middleware.verify, function (req, res) {
       if (req.body.email == "" || req.body.email == undefined) {
         res.send("failed");
         return;
@@ -2213,22 +2294,25 @@ try {
           .digest("hex");
         token_db
           .collection("api_token")
-          .find({ name: name }, function(err, results_find) {
+          .find({
+            name: name
+          }, function (err, results_find) {
             var token = "";
             if (results_find.length > 0) {
               token = results_find[0].token;
             }
             token_db
               .collection("api_links")
-              .find({ token: token }, function(e, d) {
+              .find({
+                token: token
+              }, function (e, d) {
                 if (
                   results_find.length == 0 ||
                   (d.length == 0 &&
                     results_find.length > 0 &&
                     !results_find[0].active)
                 ) {
-                  token_db.collection("api_token").insert(
-                    {
+                  token_db.collection("api_token").insert({
                       name: name,
                       origin: origin,
                       token: id,
@@ -2236,7 +2320,7 @@ try {
                       active: false,
                       limit: 20
                     },
-                    function(err, docs) {
+                    function (err, docs) {
                       createApiLink(req, res, uniqid_link, id, name);
                     }
                   );
@@ -2254,16 +2338,22 @@ try {
   function createApiLink(req, res, uniqid_link, id, name) {
     token_db
       .collection("api_links")
-      .insert({ id: uniqid_link, token: id, createdAt: new Date() }, function(
+      .insert({
+        id: uniqid_link,
+        token: id,
+        createdAt: new Date()
+      }, function (
         err,
         docs
       ) {
         let transporter = nodemailer.createTransport(mailconfig);
-        transporter.verify(function(error, success) {
+        transporter.verify(function (error, success) {
           if (error) {
             token_db
               .collection("api_links")
-              .remove({ id: uniqid_link }, function(e, d) {
+              .remove({
+                id: uniqid_link
+              }, function (e, d) {
                 res.send("failed");
                 return;
               });
@@ -2299,11 +2389,11 @@ try {
 
   router
     .route("/api/mail")
-    .post(recaptcha.middleware.verify, function(req, res) {
+    .post(recaptcha.middleware.verify, function (req, res) {
       if (req.recaptcha.error == null) {
         let transporter = nodemailer.createTransport(mailconfig);
 
-        transporter.verify(function(error, success) {
+        transporter.verify(function (error, success) {
           if (error) {
             res.sendStatus(500);
             return;
@@ -2342,7 +2432,7 @@ try {
   console.log(
     "(!) Missing file - /config/mailconfig.js Have a look at /config/mailconfig.example.js. "
   );
-  router.route("/api/mail").post(function(req, res) {
+  router.route("/api/mail").post(function (req, res) {
     console.log(
       "Someone tried to send a mail, but the mailsystem hasn't been enabled.."
     );
@@ -2356,17 +2446,19 @@ function updateTimeout(guid, res, authorized, type, callback) {
     callback(null, null);
     return;
   }
-  db.collection("timeout_api").update(
-    { type: type, guid: guid },
-    {
+  db.collection("timeout_api").update({
+      type: type,
+      guid: guid
+    }, {
       $set: {
         createdAt: new Date(),
         type: type,
         guid: guid
       }
+    }, {
+      upsert: true
     },
-    { upsert: true },
-    function(err, docs) {
+    function (err, docs) {
       callback(err, docs);
     }
   );
@@ -2377,19 +2469,20 @@ function checkTimeout(guid, res, authorized, type, callback) {
     callback();
     return;
   }
-  db.collection("timeout_api").find(
-    {
+  db.collection("timeout_api").find({
       type: type,
       guid: guid
     },
-    function(err, docs) {
+    function (err, docs) {
       if (docs.length > 0) {
         var date = new Date(docs[0].createdAt);
         date.setSeconds(date.getSeconds() + 1);
         var now = new Date();
         var retry_in = (date.getTime() - now.getTime()) / 1000;
         if (retry_in > 0) {
-          res.header({ "Retry-After": retry_in });
+          res.header({
+            "Retry-After": retry_in
+          });
           var thisErrorString = JSON.stringify(error.tooMany);
           var thisError = JSON.parse(thisErrorString);
           thisError.error +=
@@ -2399,17 +2492,19 @@ function checkTimeout(guid, res, authorized, type, callback) {
         }
       }
       var now_date = new Date();
-      db.collection("timeout_api").update(
-        { type: type, guid: guid },
-        {
+      db.collection("timeout_api").update({
+          type: type,
+          guid: guid
+        }, {
           $set: {
             createdAt: now_date,
             type: type,
             guid: guid
           }
+        }, {
+          upsert: true
         },
-        { upsert: true },
-        function(err, docs) {
+        function (err, docs) {
           callback();
           return;
         }
@@ -2428,7 +2523,9 @@ function cleanChannelName(channel_name) {
 }
 
 function validateLogin(adminpass, userpass, channel_name, type, res, callback) {
-  db.collection(channel_name + "_settings").find({ id: "config" }, function(
+  db.collection(channel_name + "_settings").find({
+    id: "config"
+  }, function (
     err,
     conf
   ) {
@@ -2452,9 +2549,9 @@ function validateLogin(adminpass, userpass, channel_name, type, res, callback) {
       type == "fetch_song" ||
       (type == "add" &&
         ((conf[0].addsongs &&
-          (conf[0].adminpass == "" ||
-            conf[0].adminpass == undefined ||
-            conf[0].adminpass == adminpass)) ||
+            (conf[0].adminpass == "" ||
+              conf[0].adminpass == undefined ||
+              conf[0].adminpass == adminpass)) ||
           !conf[0].addsongs)) ||
       (type == "delete" &&
         (conf[0].adminpass == "" ||
@@ -2462,9 +2559,9 @@ function validateLogin(adminpass, userpass, channel_name, type, res, callback) {
           conf[0].adminpass == adminpass)) ||
       (type == "vote" &&
         ((conf[0].vote &&
-          (conf[0].adminpass == "" ||
-            conf[0].adminpass == undefined ||
-            conf[0].adminpass == adminpass)) ||
+            (conf[0].adminpass == "" ||
+              conf[0].adminpass == undefined ||
+              conf[0].adminpass == adminpass)) ||
           !conf[0].vote)) ||
       (type == "config" &&
         (conf[0].adminpass == "" ||
@@ -2493,7 +2590,7 @@ function postEnd(
   if (configs != undefined) {
     io.to(channel_name).emit("conf", configs);
   }
-  List.getNextSong(channel_name, undefined, function() {
+  List.getNextSong(channel_name, undefined, function () {
     //updateTimeout(guid, res, authorized, "POST", function(err, docs) {
     var to_return = error.no_error;
     if (!authenticated) {

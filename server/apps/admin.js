@@ -1,8 +1,11 @@
 var express = require("express");
 var app = express();
 
-const path = require("path");
-const publicPath = path.join(__dirname + "", "../public");
+import {
+  publicPath,
+  pathThumbnails
+} from "../settings/globals";
+
 var exphbs = require("express-handlebars");
 var hbs = exphbs.create({
   defaultLayout: publicPath + "/layouts/admin/main",
@@ -11,12 +14,10 @@ var hbs = exphbs.create({
 });
 
 var passport = require("passport");
-var mpromise = require("mpromise");
 var LocalStrategy = require("passport-local").Strategy;
 var mongoose = require("mongoose");
 var mongo_db_cred = require(pathThumbnails + "/config/mongo_config.js");
 var mongojs = require("mongojs");
-var db = mongojs(mongo_db_cred.config);
 var token_db = mongojs("tokens");
 var bodyParser = require("body-parser");
 var session = require("express-session");
@@ -30,7 +31,9 @@ mongoose.connect(url);
 
 app.engine("handlebars", hbs.engine);
 app.set("view engine", "handlebars");
-app.use(compression({ filter: shouldCompress }));
+app.use(compression({
+  filter: shouldCompress
+}));
 
 function shouldCompress(req, res) {
   if (req.headers["x-no-compression"]) {
@@ -44,7 +47,6 @@ function shouldCompress(req, res) {
 app.set("trust proxy", "127.0.0.1");
 
 var bodyParser = require("body-parser");
-var cookieParser = require("cookie-parser");
 var referrerPolicy = require("referrer-policy");
 var helmet = require("helmet");
 var featurePolicy = require("feature-policy");
@@ -52,13 +54,11 @@ app.use(
   featurePolicy({
     features: {
       fullscreen: ["*"],
-      //vibrate: ["'none'"],
       payment: ["'none'"],
       microphone: ["'none'"],
       camera: ["'none'"],
       speaker: ["*"],
       syncXhr: ["'self'"]
-      //notifications: ["'self'"]
     }
   })
 );
@@ -67,7 +67,9 @@ app.use(
     frameguard: false
   })
 );
-app.use(referrerPolicy({ policy: "origin-when-cross-origin" }));
+app.use(referrerPolicy({
+  policy: "origin-when-cross-origin"
+}));
 app.enable("view cache");
 app.set("views", publicPath);
 app.use(bodyParser.json()); // to support JSON-encoded bodies
@@ -92,43 +94,47 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 
-//app.use('/assets', express.static(publicPath + '/assets'));
 
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function (user, done) {
   done(null, user.id);
 });
 
 // used to deserialize the user
-passport.deserializeUser(function(id, done) {
-  User.findById(id, function(err, user) {
+passport.deserializeUser(function (id, done) {
+  User.findById(id, function (err, user) {
     done(err, user);
   });
 });
 
 passport.use(
   "local-signup",
-  new LocalStrategy(
-    {
+  new LocalStrategy({
       // by default, local strategy uses username and password, we will override with username
       usernameField: "username",
       passwordField: "password",
       passReqToCallback: true // allows us to pass back the entire request to the callback
     },
-    function(req, username, password, done) {
+    function (req, username, password, done) {
       // asynchronous
       // User.findOne wont fire unless data is sent back
-      process.nextTick(function() {
+      process.nextTick(function () {
         // find a user whose username is the same as the forms username
         // we are checking to see if the user trying to login already exists
         var token = req.body.token;
         token_db
           .collection("tokens")
-          .find({ token: token }, function(err, docs) {
+          .find({
+            token: token
+          }, function (err, docs) {
             if (docs.length == 1) {
               token_db
                 .collection("tokens")
-                .remove({ token: token }, function(err, docs) {
-                  User.findOne({ username: username }, function(err, user) {
+                .remove({
+                  token: token
+                }, function (err, docs) {
+                  User.findOne({
+                    username: username
+                  }, function (err, user) {
                     // if there are any errors, return the error
                     if (err) return done(err);
 
@@ -145,7 +151,7 @@ passport.use(
                       newUser.password = newUser.generateHash(password);
 
                       // save the user
-                      newUser.save(function(err) {
+                      newUser.save(function (err) {
                         if (err) throw err;
                         return done(null, newUser);
                       });
@@ -163,19 +169,20 @@ passport.use(
 
 passport.use(
   "local-login",
-  new LocalStrategy(
-    {
+  new LocalStrategy({
       // by default, local strategy uses username and password, we will override with email
       usernameField: "username",
       passwordField: "password",
       passReqToCallback: true // allows us to pass back the entire request to the callback
     },
-    function(req, username, password, done) {
+    function (req, username, password, done) {
       // callback with email and password from our form
 
       // find a user whose email is the same as the forms email
       // we are checking to see if the user trying to login already exists
-      User.findOne({ username: username }, function(err, user) {
+      User.findOne({
+        username: username
+      }, function (err, user) {
         // if there are any errors, return the error before anything else
         if (err) return done(err);
 
@@ -211,7 +218,7 @@ app.post(
   })
 );
 
-app.use("/login", isLoggedInTryingToLogIn, function(req, res) {
+app.use("/login", isLoggedInTryingToLogIn, function (req, res) {
   var data = {
     where_get: "not_authenticated"
   };
@@ -219,7 +226,7 @@ app.use("/login", isLoggedInTryingToLogIn, function(req, res) {
   res.render("layouts/admin/not_authenticated", data);
 });
 
-app.use("/signup", isLoggedInTryingToLogIn, function(req, res) {
+app.use("/signup", isLoggedInTryingToLogIn, function (req, res) {
   var data = {
     where_get: "not_authenticated"
   };
@@ -229,12 +236,12 @@ app.use("/signup", isLoggedInTryingToLogIn, function(req, res) {
 
 app.use("/", api);
 
-app.use("/logout", function(req, res) {
+app.use("/logout", function (req, res) {
   req.logout();
   res.redirect("/login");
 });
 
-app.use("/assets/admin/authenticated", function(req, res, next) {
+app.use("/assets/admin/authenticated", function (req, res, next) {
   if (!req.isAuthenticated()) {
     res.sendStatus(403);
     return;
@@ -244,7 +251,7 @@ app.use("/assets/admin/authenticated", function(req, res, next) {
 
 app.use("/assets", express.static(publicPath + "/assets"));
 
-app.use("/", isLoggedIn, function(req, res) {
+app.use("/", isLoggedIn, function (req, res) {
   var data = {
     where_get: "authenticated",
     year: new Date().getYear() + 1900
@@ -264,7 +271,5 @@ function isLoggedIn(req, res, next) {
   if (req.isAuthenticated()) return next();
   res.redirect("/login");
 }
-
-//app.listen(default_port);
 
 module.exports = app;

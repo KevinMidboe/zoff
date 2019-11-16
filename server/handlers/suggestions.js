@@ -1,3 +1,7 @@
+import {
+  pathThumbnails
+} from "../settings/globals";
+
 var Functions = require(pathThumbnails + "/handlers/functions.js");
 var Notifications = require(pathThumbnails + "/handlers/notifications.js");
 var crypto = require("crypto");

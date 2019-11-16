@@ -1,17 +1,20 @@
-var path = require("path");
+import { join } from "path";
+import {
+  mongojs
+} from 'mongojs';
+
 try {
-  var mongo_config = require(path.join(
-    path.join(__dirname, "../config/"),
+  var mongo_config = require(
+    join(__dirname, "../config/mongo_config.js"),
     "mongo_config.js"
-  ));
+  );
 } catch (e) {
   console.log(
     "(!) Missing file - /config/mongo_config.js. Have a look at /config/mongo_config.example.js.  The server won't run without this existing."
   );
   process.exit(1);
 }
-var mongojs = require("mongojs");
-var db = mongojs("mongodb://" + mongo_config.host + "/" + mongo_config.config);
+const db = mongojs("mongodb://" + mongo_config.host + "/" + mongo_config.config);
 
 db.collection("chat_logs").createIndex({
     createdAt: 1
@@ -20,6 +23,7 @@ db.collection("chat_logs").createIndex({
   },
   function () {}
 );
+
 db.collection("timeout_api").createIndex({
     createdAt: 1
   }, {
@@ -27,6 +31,7 @@ db.collection("timeout_api").createIndex({
   },
   function () {}
 );
+
 db.collection("api_links").createIndex({
     createdAt: 1
   }, {
@@ -34,6 +39,7 @@ db.collection("api_links").createIndex({
   },
   function () {}
 );
+
 db.on("connected", function (err) {
   console.log("connected");
 });
@@ -59,6 +65,7 @@ db.collection("unique_ids").update({
   },
   function (err, docs) {}
 );
+
 db.collection("user_names").remove({
     guid: {
       $exists: true
@@ -69,6 +76,7 @@ db.collection("user_names").remove({
   },
   function (err, docs) {}
 );
+
 db.collection("user_names").update({
     _id: "all_names"
   }, {
@@ -81,6 +89,7 @@ db.collection("user_names").update({
   },
   function (err, docs) {}
 );
+
 db.collection("connected_users").update({
     users: {
       $exists: true
@@ -95,6 +104,7 @@ db.collection("connected_users").update({
   },
   function (err, docs) {}
 );
+
 db.collection("connected_users").update({
     _id: "total_users"
   }, {
@@ -107,6 +117,7 @@ db.collection("connected_users").update({
   },
   function (err, docs) {}
 );
+
 db.collection("frontpage_lists").update({
     viewers: {
       $ne: 0
@@ -122,4 +133,4 @@ db.collection("frontpage_lists").update({
   function (err, docs) {}
 );
 
-module.exports = db;
+export default db;

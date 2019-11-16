@@ -1,3 +1,8 @@
+import {
+  pathThumbnails,
+  VERSION
+} from "../settings/globals";
+
 var Functions = require(pathThumbnails + "/handlers/functions.js");
 var db = require(pathThumbnails + "/handlers/db.js");
 

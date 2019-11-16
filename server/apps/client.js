@@ -1,4 +1,8 @@
-VERSION = require(pathThumbnails + "/VERSION.js");
+import {
+  publicPath,
+  pathThumbnails,
+} from "../settings/globals";
+
 var secure = false;
 var path = require("path");
 try {
@@ -7,18 +11,9 @@ try {
     "cert_config.js"
   ));
   var fs = require("fs");
-  var privateKey = fs.readFileSync(cert_config.privateKey).toString();
-  var certificate = fs.readFileSync(cert_config.certificate).toString();
-  var ca = fs.readFileSync(cert_config.ca).toString();
-  var credentials = {
-    key: privateKey,
-    cert: certificate,
-    ca: ca
-  };
   secure = true;
 } catch (err) {}
 
-var add = "";
 var express = require("express");
 var app = express();
 var compression = require("compression");
@@ -31,21 +26,23 @@ var hbs = exphbs.create({
   layoutsDir: publicPath + "/layouts/client",
   partialsDir: publicPath + "/partials",
   helpers: {
-    if_equal: function(a, b, opts) {
+    if_equal: function (a, b, opts) {
       if (a == b) {
         return opts.fn(this);
       } else {
         return opts.inverse(this);
       }
     },
-    decodeString: function(s) {
+    decodeString: function (s) {
       if (s == undefined) return s;
       return Functions.decodeChannelName(s);
     }
   }
 });
 var uniqid = require("uniqid");
-app.use(compression({ filter: shouldCompress }));
+app.use(compression({
+  filter: shouldCompress
+}));
 
 function shouldCompress(req, res) {
   if (req.headers["x-no-compression"]) {
@@ -68,17 +65,16 @@ var cookieParser = require("cookie-parser");
 var referrerPolicy = require("referrer-policy");
 var helmet = require("helmet");
 var featurePolicy = require("feature-policy");
+
 app.use(
   featurePolicy({
     features: {
       fullscreen: ["*"],
-      //vibrate: ["'none'"],
       payment: ["'none'"],
       microphone: ["'none'"],
       camera: ["'none'"],
       speaker: ["*"],
       syncXhr: ["'self'"]
-      //notifications: ["'self'"]
     }
   })
 );
@@ -87,7 +83,9 @@ app.use(
     frameguard: false
   })
 );
-app.use(referrerPolicy({ policy: "origin-when-cross-origin" }));
+app.use(referrerPolicy({
+  policy: "origin-when-cross-origin"
+}));
 app.use(bodyParser.json()); // to support JSON-encoded bodies
 app.use(
   bodyParser.urlencoded({
@@ -96,12 +94,9 @@ app.use(
   })
 );
 app.use(cookieParser());
-//app.set('json spaces', 2);
 
 io = require("socket.io")({
   pingTimeout: 25000
-  //path: '/zoff',
-  //"origins": ("https://zoff.me:443*,https://zoff.me:8080*,zoff.me:8080*,https://remote.zoff.me:443*,https://remote.zoff.me:8080*,https://fb.zoff.me:443*,https://fb.zoff.me:8080*,https://admin.zoff.me:443*,https://admin.zoff.me:8080*, http://localhost:8080*")});
 });
 
 var socketIO = require(pathThumbnails + "/handlers/io.js");
@@ -116,12 +111,12 @@ var api = api_file.router;
 api_file.sIO = app.socketIO;
 var ico_router = require(pathThumbnails + "/routing/client/icons_routing.js");
 
-app.get("/robots.txt", function(req, res) {
+app.get("/robots.txt", function (req, res) {
   res.type("text/plain");
   res.send("User-agent: *\nAllow: /$\nDisallow: /");
 });
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   var cookie = req.cookies._uI;
   var skipElements = [
     "/_embed",
@@ -145,12 +140,6 @@ app.use(function(req, res, next) {
       next();
     } else {
       if (cookie === undefined) {
-        try {
-          //console.error((new Date), "originalUrl", req.originalUrl);
-          //console.error((new Date), "couldn't fetch cookie for some reason, maybe no cookie exists?", req.get('origin'), "couldn't fetch cookie for some reason, maybe no cookie exists?");
-        } catch (e) {
-          //console.error((new Date), "couldn't fetch origin");
-        }
         var user_name = Functions.hash_pass(
           Functions.rndName(uniqid.time(), 15)
         );
@@ -158,15 +147,12 @@ app.use(function(req, res, next) {
           maxAge: 365 * 10000 * 3600000,
           httpOnly: true,
           secure: secure
-          //sameSite: true,
         });
       } else {
-        //process.stderr.write((new Date), "couldn't fetch cookie for some reason, maybe no cookie exists?", req, "couldn't fetch cookie for some reason, maybe no cookie exists?");
         res.cookie("_uI", cookie, {
           maxAge: 365 * 10000 * 3600000,
           httpOnly: true,
           secure: secure
-          //sameSite: true,
         });
       }
       res.header("Access-Control-Allow-Origin", "*");
@@ -179,7 +165,7 @@ app.use(function(req, res, next) {
   }
 });
 
-app.use("/service-worker.js", function(req, res) {
+app.use("/service-worker.js", function (req, res) {
   res.sendFile(publicPath + "/service-worker.js");
 });
 
@@ -187,19 +173,19 @@ app.use("/", ico_router);
 app.use("/", api);
 app.use("/", cors(), router);
 
-app.use("/assets/js", function(req, res, next) {
+app.use("/assets/js", function (req, res, next) {
   res.sendStatus(403);
   return;
 });
 
-app.use("/assets/admin", function(req, res, next) {
+app.use("/assets/admin", function (req, res, next) {
   res.sendStatus(403);
   return;
 });
 
 app.use("/assets", express.static(publicPath + "/assets"));
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.status(404);
   res.redirect("/404");
 });

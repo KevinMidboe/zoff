@@ -1,26 +1,25 @@
 var cluster = require("cluster"),
   net = require("net"),
   path = require("path"),
-  //publicPath = path.join(__dirname, 'public'),
   http = require("http"),
   port = 8080,
   farmhash = require("farmhash"),
   uniqid = require("uniqid"),
   num_processes = require("os").cpus().length;
 
-publicPath = path.join(__dirname, "public");
-pathThumbnails = __dirname;
-
 try {
   var redis = require("redis");
-  var client = redis.createClient({ host: "localhost", port: 6379 });
-  client.on("error", function(err) {
+  var client = redis.createClient({
+    host: "localhost",
+    port: 6379
+  });
+  client.on("error", function (err) {
     console.log("Couldn't connect to redis-server, assuming non-clustered run");
     num_processes = 1;
     startSingle(false, false);
     client.quit();
   });
-  client.on("connect", function() {
+  client.on("connect", function () {
     startClustered(true);
     client.quit();
   });
@@ -34,9 +33,9 @@ function startClustered(redis_enabled) {
   //Found https://stackoverflow.com/questions/40885592/use-node-js-cluster-with-socket-io-chat-application
   if (cluster.isMaster) {
     var workers = [];
-    var spawn = function(i) {
+    var spawn = function (i) {
       workers[i] = cluster.fork();
-      workers[i].on("exit", function(code, signal) {
+      workers[i].on("exit", function (code, signal) {
         if (code == 1) {
           process.exit(1);
           return;
@@ -50,8 +49,7 @@ function startClustered(redis_enabled) {
       spawn(i);
     }
 
-    var worker_index = function(ip, len) {
-      //console.log(ip);
+    var worker_index = function (ip, len) {
       var s = "";
       if (ip !== undefined) {
         return farmhash.fingerprint32(ip) % len;
@@ -66,11 +64,15 @@ function startClustered(redis_enabled) {
     };
 
     var server = net
-      .createServer({ pauseOnConnect: true }, function(connection, a) {
-        var worker =
-          workers[worker_index(connection.address().address, num_processes)];
-        worker.send("sticky-session:connection", connection);
-      })
+      .createServer({
+          pauseOnConnect: true
+        },
+        function (connection, a) {
+          var worker =
+            workers[worker_index(connection.address().address, num_processes)];
+          worker.send("sticky-session:connection", connection);
+        }
+      )
       .listen(port);
   } else {
     startSingle(true, redis_enabled);
@@ -112,14 +114,19 @@ function startSingle(clustered, redis_enabled) {
   if (redis_enabled) {
     var redis = require("socket.io-redis");
     try {
-      socketIO.adapter(redis({ host: "localhost", port: 6379 }));
+      socketIO.adapter(
+        redis({
+          host: "localhost",
+          port: 6379
+        })
+      );
     } catch (e) {
       console.log("No redis-server to connect to..");
     }
   }
   socketIO.listen(server);
 
-  process.on("message", function(message, connection) {
+  process.on("message", function (message, connection) {
     if (message !== "sticky-session:connection") {
       return;
     }
@@ -136,12 +143,12 @@ function routingFunction(req, res, next) {
   var client = require("./apps/client.js");
   var admin = require("./apps/admin.js");
   try {
-    var url = req.headers["x-forwarded-host"]
-      ? req.headers["x-forwarded-host"]
-      : req.headers.host.split(":")[0];
-    var subdomain = req.headers["x-forwarded-host"]
-      ? req.headers["x-forwarded-host"].split(".")
-      : req.headers.host.split(":")[0].split(".");
+    var url = req.headers["x-forwarded-host"] ?
+      req.headers["x-forwarded-host"] :
+      req.headers.host.split(":")[0];
+    var subdomain = req.headers["x-forwarded-host"] ?
+      req.headers["x-forwarded-host"].split(".") :
+      req.headers.host.split(":")[0].split(".");
 
     if (subdomain.length > 1 && subdomain[0] == "admin") {
       admin(req, res, next);

@@ -1,3 +1,7 @@
+import {
+  pathThumbnails
+} from "../settings/globals";
+
 var path = require("path");
 try {
   var mongo_config = require(path.join(

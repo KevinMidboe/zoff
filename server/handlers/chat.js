@@ -1,3 +1,7 @@
+import {
+  pathThumbnails
+} from "../settings/globals";
+
 var Functions = require(pathThumbnails + "/handlers/functions.js");
 var crypto = require("crypto");
 var db = require(pathThumbnails + "/handlers/db.js");

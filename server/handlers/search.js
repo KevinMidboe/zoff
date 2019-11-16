@@ -1,3 +1,7 @@
+import {
+  pathThumbnails
+} from "../settings/globals";
+
 var path = require("path");
 var time_regex = /P((([0-9]*\.?[0-9]*)Y)?(([0-9]*\.?[0-9]*)M)?(([0-9]*\.?[0-9]*)W)?(([0-9]*\.?[0-9]*)D)?)?(T(([0-9]*\.?[0-9]*)H)?(([0-9]*\.?[0-9]*)M)?(([0-9]*\.?[0-9]*)S)?)?/;
 try {
@@ -377,7 +381,6 @@ function get_genres_youtube(ids, channel) {
 }
 
 function get_correct_info(song_generated, channel, broadcast, callback) {
-  //channel = channel.replace(/ /g,'');
   request({
       type: "GET",
       url: "https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet,id,topicDetails&key=" +
@@ -404,7 +407,6 @@ function get_correct_info(song_generated, channel, broadcast, callback) {
             .toLowerCase()
             .split(",");
           genre = genre.filter(filterFunction);
-          //console.log(genre + " - ", song_generated.id);
           if (
             title != song_generated.title ||
             duration < parseInt(song_generated.duration)
@@ -431,7 +433,6 @@ function get_correct_info(song_generated, channel, broadcast, callback) {
               function (err, docs) {
                 if (broadcast && docs.nModified == 1) {
                   song_generated.new_id = song_generated.id;
-                  //if(song_generated.type == "video")
                   if (typeof callback == "function") {
                     callback(song_generated, true);
                   } else {
@@ -494,7 +495,6 @@ function check_error_video(msg, channel) {
     return;
   }
   if (msg.source == "soundcloud") return;
-  //channel = channel.replace(/ /g,'');
   request({
       type: "GET",
       url: "https://www.googleapis.com/youtube/v3/videos?part=id&key=" +
@@ -516,7 +516,6 @@ function check_error_video(msg, channel) {
 }
 
 function findSimilar(msg, channel, broadcast, callback) {
-  //channel = channel.replace(/ /g,'');
   var yt_url =
     "https://www.googleapis.com/youtube/v3/search?key=" +
     key +
@@ -626,7 +625,7 @@ function editDistance(s1, s2) {
   s1 = s1.toLowerCase();
   s2 = s2.toLowerCase();
 
-  var costs = new Array();
+  var costs = new [];
   for (var i = 0; i <= s1.length; i++) {
     var lastValue = i;
     for (var j = 0; j <= s2.length; j++) {

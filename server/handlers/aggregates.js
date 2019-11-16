@@ -73,7 +73,6 @@ var toShowChannel = {
   _id: 0,
   tags: 1,
   now_playing: 1,
-  type: 1,
   source: 1,
   thumbnail: 1
 };

@@ -1,3 +1,8 @@
+import {
+  pathThumbnails,
+  VERSION
+} from "../settings/globals";
+
 var ColorThief = require("color-thief-jimp");
 var Jimp = require("jimp");
 var Functions = require(pathThumbnails + "/handlers/functions.js");
@@ -99,9 +104,8 @@ function list(msg, guid, coll, offline, socket) {
         socket.emit("update_required", result);
         return;
       }
-      coll = msg.channel.toLowerCase(); //.replace(/ /g,'');
+      coll = msg.channel.toLowerCase();
       coll = Functions.removeEmojis(coll).toLowerCase();
-      //coll = filter.clean(coll);
       var pass = msg.pass;
       db.collection("frontpage_lists").find({
         _id: coll
@@ -1280,7 +1284,6 @@ function sendColor(coll, socket, url, ajax, res) {
 }
 
 function getNextSong(coll, socket, callback) {
-  //coll = coll.replace(/ /g,'');
   db.collection(coll).aggregate(
     [{
         $match: {

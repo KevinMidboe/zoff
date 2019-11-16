@@ -1,3 +1,7 @@
+import {
+  pathThumbnails
+} from "../settings/globals";
+
 var express = require("express");
 var router = express.Router();
 var path = require("path");
@@ -9,7 +13,6 @@ var adsense = "xx";
 var adds = false;
 var mongojs = require("mongojs");
 var token_db = mongojs("tokens");
-var Functions = require(pathThumbnails + "/handlers/functions.js");
 var Frontpage = require(pathThumbnails + "/handlers/frontpage.js");
 
 var db = require(pathThumbnails + "/handlers/db.js");
@@ -50,28 +53,28 @@ try {
   };
 }
 
-router.use(recaptcha.middleware.render, function(req, res, next) {
+router.use(recaptcha.middleware.render, function (req, res, next) {
   next(); // make sure we go to the next routes and don't stop here
 });
 
-router.route("/:channel_name").get(function(req, res, next) {
+router.route("/:channel_name").get(function (req, res, next) {
   channel(req, res, next);
 });
 
-router.route("/r/:base64data").get(function(req, res, next) {
+router.route("/r/:base64data").get(function (req, res, next) {
   var channelToRedirect = Buffer.from(req.params.base64data, "base64");
   res.redirect("/" + channelToRedirect);
 });
 
-router.route("/").get(function(req, res, next) {
+router.route("/").get(function (req, res, next) {
   root(req, res, next);
 });
 
-router.route("/").post(function(req, res, next) {
+router.route("/").post(function (req, res, next) {
   root(req, res, next);
 });
 
-router.route("/api/embed").get(function(req, res, next) {
+router.route("/api/embed").get(function (req, res, next) {
   var data = {
     year: year,
     type: "video",
@@ -85,11 +88,11 @@ router.route("/api/embed").get(function(req, res, next) {
   res.render("layouts/client/embed", data);
 });
 
-router.route("/api/oauth").get(function(req, res, next) {
+router.route("/api/oauth").get(function (req, res, next) {
   res.sendFile(path.join(pathThumbnails, "/public/assets/html/callback.html"));
 });
 
-router.route("/api/apply").get(function(req, res, next) {
+router.route("/api/apply").get(function (req, res, next) {
   var data = {
     year: year,
     javascript_file: "token.min.js",
@@ -108,17 +111,25 @@ router.route("/api/apply").get(function(req, res, next) {
   res.render("layouts/client/token", data);
 });
 
-router.route("/api/apply/:id").get(function(req, res) {
+router.route("/api/apply/:id").get(function (req, res) {
   var id = req.params.id;
-  token_db.collection("api_links").find({ id: id }, function(err, result) {
+  token_db.collection("api_links").find({
+    id: id
+  }, function (err, result) {
     if (result.length == 1) {
-      token_db.collection("api_links").remove({ id: id }, function(e, d) {
+      token_db.collection("api_links").remove({
+        id: id
+      }, function (e, d) {
         token_db
           .collection("api_token")
-          .update(
-            { token: result[0].token },
-            { $set: { active: true } },
-            function(e, d) {
+          .update({
+              token: result[0].token
+            }, {
+              $set: {
+                active: true
+              }
+            },
+            function (e, d) {
               var data = {
                 year: year,
                 javascript_file: "token.min.js",
@@ -161,12 +172,12 @@ router.route("/api/apply/:id").get(function(req, res) {
 
 function root(req, res, next) {
   try {
-    var url = req.headers["x-forwarded-host"]
-      ? req.headers["x-forwarded-host"]
-      : req.headers.host.split(":")[0];
-    var subdomain = req.headers["x-forwarded-host"]
-      ? req.headers["x-forwarded-host"].split(".")
-      : req.headers.host.split(":")[0].split(".");
+    var url = req.headers["x-forwarded-host"] ?
+      req.headers["x-forwarded-host"] :
+      req.headers.host.split(":")[0];
+    var subdomain = req.headers["x-forwarded-host"] ?
+      req.headers["x-forwarded-host"].split(".") :
+      req.headers.host.split(":")[0].split(".");
     if (subdomain[0] == "remote") {
       var data = {
         year: year,
@@ -202,8 +213,10 @@ function root(req, res, next) {
       if (subdomain[0] == "client") {
         data.client = true;
       }
-      Frontpage.get_frontpage_lists(function(err, docs) {
-        db.collection("connected_users").find({ _id: "total_users" }, function(
+      Frontpage.get_frontpage_lists(function (err, docs) {
+        db.collection("connected_users").find({
+          _id: "total_users"
+        }, function (
           err,
           tot
         ) {
@@ -228,12 +241,12 @@ function root(req, res, next) {
 
 function channel(req, res, next) {
   try {
-    var url = req.headers["x-forwarded-host"]
-      ? req.headers["x-forwarded-host"]
-      : req.headers.host.split(":")[0];
-    var subdomain = req.headers["x-forwarded-host"]
-      ? req.headers["x-forwarded-host"].split(".")
-      : req.headers.host.split(":")[0].split(".");
+    var url = req.headers["x-forwarded-host"] ?
+      req.headers["x-forwarded-host"] :
+      req.headers.host.split(":")[0];
+    var subdomain = req.headers["x-forwarded-host"] ?
+      req.headers["x-forwarded-host"].split(".") :
+      req.headers.host.split(":")[0].split(".");
     if (subdomain[0] == "remote") {
       var data = {
         year: year,

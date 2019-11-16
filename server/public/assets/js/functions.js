@@ -1,3 +1,7 @@
+import {
+  VERSION
+} from "../../../VERSION";
+
 function removeAllListeners() {
   Helper.log(["Removing all listeners"]);
   socket.removeEventListener("chat.all");
@@ -9,14 +13,12 @@ function removeAllListeners() {
   socket.removeEventListener("channel");
   socket.removeEventListener("np");
   socket.removeEventListener("get_list");
-  //socket.removeEventListener("self_ping");
   socket.removeEventListener("viewers");
   socket.removeEventListener("auth_required");
   socket.removeEventListener("auth_accepted");
   socket.removeEventListener("suggested");
   socket.removeEventListener("color");
   socket.removeEventListener("chat_history");
-  //socket.removeEventListener("name");
   socket.removeEventListener(id);
 }
 
@@ -44,7 +46,7 @@ function filterPlaylistElements(page) {
       page: page,
       type: search_type
     },
-    success: function(data) {
+    success: function (data) {
       var json = JSON.parse(data);
       document.querySelector(".filter-results").innerHTML = "";
       if (json.results.search_results.length > 0) {
@@ -70,7 +72,7 @@ function filterPlaylistElements(page) {
           "Couldn't find any items with those tags..";
       }
     },
-    error: function(e) {
+    error: function (e) {
       if (e.status != 429) {
         toast("Couldn't find any items with those tags..", "red");
 
@@ -111,11 +113,10 @@ function addFilterButtons(position, json) {
 }
 
 function say_updated() {
-  setTimeout(function() {
+  setTimeout(function () {
     before_toast();
     M.toast({
-      html:
-        "The list was updated, want to refresh? <a class='waves-effect waves-light btn light-green' href='#' id='refresh_mobile' style='cursor:pointer;pointer-events:all;margin-left:10px;'> yes</a><a class='waves-effect waves-light btn red lighten' id='dont_refresh_list' style='cursor:pointer;pointer-events:all;margin-left:10px;'>no</a>",
+      html: "The list was updated, want to refresh? <a class='waves-effect waves-light btn light-green' href='#' id='refresh_mobile' style='cursor:pointer;pointer-events:all;margin-left:10px;'> yes</a><a class='waves-effect waves-light btn red lighten' id='dont_refresh_list' style='cursor:pointer;pointer-events:all;margin-left:10px;'>no</a>",
       displayLength: 10000000
     });
   }, 500);
@@ -150,9 +151,9 @@ function resizeFunction() {
     if (document.querySelector("#wrapper") == null) return;
     if (!client && !embed)
       document.querySelector("#hide-playlist").style.left =
-        document.querySelector("#video-container").offsetWidth -
-        document.querySelector("#hide-playlist").offsetWidth +
-        "px";
+      document.querySelector("#video-container").offsetWidth -
+      document.querySelector("#hide-playlist").offsetWidth +
+      "px";
     if (
       ((window.innerWidth > 600 && !embed) ||
         (window.innerWidth > 500 && embed)) &&
@@ -171,7 +172,7 @@ function resizeFunction() {
         var scPlaying = false;
         var ytPlaying = false;
         if (scUsingWidget) {
-          Player.soundcloud_player.isPaused(function(paused) {
+          Player.soundcloud_player.isPaused(function (paused) {
             try {
               ytPlaying =
                 Player.player.getPlayerState() == YT.PlayerState.PLAYING ||
@@ -213,7 +214,7 @@ function resizeFunction() {
             Helper.computedStyle("header", "height") -
             64 -
             40) /
-            71
+          71
         ) + 1;
       List.element_height =
         (window.innerHeight -
@@ -221,7 +222,7 @@ function resizeFunction() {
           Helper.computedStyle("header", "height") -
           64 -
           40) /
-          temp_fit -
+        temp_fit -
         5;
     } else {
       temp_fit =
@@ -238,7 +239,7 @@ function resizeFunction() {
           Helper.computedStyle("header", "height") -
           64 -
           40) /
-          71
+        71
       );
       List.element_height =
         (window.innerHeight -
@@ -246,17 +247,16 @@ function resizeFunction() {
           Helper.computedStyle("header", "height") -
           64 -
           40) /
-          temp_fit -
+        temp_fit -
         5;
     } else if (List.element_height < 55.2 && embed) {
-      //List.can_fit = List.can_fit - 1;
       temp_fit = Math.round(
         (window.innerHeight -
           Helper.computedStyle(".tabs", "height") -
           Helper.computedStyle("header", "height") -
           64 -
           40) /
-          71
+        71
       );
       List.element_height =
         (window.innerHeight -
@@ -264,7 +264,7 @@ function resizeFunction() {
           Helper.computedStyle("header", "height") -
           64 -
           40) /
-          temp_fit -
+        temp_fit -
         5;
       temp_fit = temp_fit - 2;
     }
@@ -295,7 +295,6 @@ function resizeFunction() {
       }
     }
     List.can_fit = temp_fit;
-    //List.element_height = (Helper.computedStyle("#wrapper", "height") / List.can_fit)-5.3;
     Helper.css(".list-song", "height", List.element_height + "px");
     Channel.set_title_width();
     if (!client) {
@@ -354,14 +353,19 @@ function getColor(id) {
   Helper.ajax({
     method: "POST",
     url: "/api/color",
-    headers: { "Content-Type": "application/json;charset=UTF-8" },
+    headers: {
+      "Content-Type": "application/json;charset=UTF-8"
+    },
     data: JSON.stringify({
       id: id
     }),
-    success: function(c) {
+    success: function (c) {
       c = JSON.parse(c);
       if (typeof c == "object") {
-        Player.setBGimage({ color: c, only: true });
+        Player.setBGimage({
+          color: c,
+          only: true
+        });
       }
     }
   });
@@ -384,14 +388,11 @@ function hide_native(way) {
     }
     Helper.toggleClass("#duration", "hide");
     Helper.toggleClass("#fullscreen", "hide");
-    try {
-      if (videoSource == "youtube") {
-        Player.player.stopVideo();
-      } else if (videoSource == "soundcloud") {
-        Player.soundcloud_player.pause();
-      }
-    } catch (e) {}
-    //clearTimeout(durationTimeout);
+    if (videoSource == "youtube") {
+      Player.player.stopVideo();
+    } else if (videoSource == "soundcloud") {
+      Player.soundcloud_player.pause();
+    }
     Player.stopInterval = true;
     if (Helper.mobilecheck()) {
       if (document.querySelector("#pause").classList.contains("hide")) {
@@ -412,7 +413,7 @@ function hide_native(way) {
       var thisThumbnail;
       if (Player.np.thumbnail == undefined)
         thisThumbnail =
-          "https://img.youtube.com/vi/" + video_id + "/hqdefault.jpg";
+        "https://img.youtube.com/vi/" + video_id + "/hqdefault.jpg";
       else thisThumbnail = Player.np.thumbnail;
       Helper.removeClass("#player_overlay", "hide");
       Helper.css("#player_overlay", "display", "block");
@@ -472,7 +473,9 @@ function hide_native(way) {
     Helper.setHtml("#chromecast_text", "");
     Helper.css("#playing_on", "display", "none");
     if (!offline) {
-      socket.emit("pos", { channel: chan.toLowerCase() });
+      socket.emit("pos", {
+        channel: chan.toLowerCase()
+      });
     } else {
       Player.loadVideoById(video_id);
     }
@@ -521,7 +524,6 @@ function start_auth() {
     Helper.css("#player_overlay", "display", "block");
     M.Modal.getInstance(document.getElementById("user_password")).open();
     document.querySelector("#user-pass-input").focus();
-    //Crypt.remove_userpass(chan.toLowerCase());
     before_toast();
     M.toast({
       html: "That is not the correct password, try again..",
@@ -532,32 +534,30 @@ function start_auth() {
 
 function emit_list() {
   var add = "";
-  //if(private_channel) add = Crypt.getCookie("_uI") + "_";
-  /*var p = Crypt.crypt_pass(Crypt.get_userpass(chan.toLowerCase()), true);
-    if(p == undefined) p = "";*/
   if (socket.id) {
     socket.emit("list", {
-      version: parseInt(_VERSION),
+      version: parseInt(VERSION),
       channel: add + chan.toLowerCase()
     });
   } else {
-    setTimeout(function() {
+    setTimeout(function () {
       emit_list();
     }, 50);
   }
 }
 
 function get_list_ajax() {
-  //var c = Crypt.get_userpass(chan.toLowerCase());
   Helper.ajax({
     type: "POST",
     data: {
       userpass: "",
       token: zoff_api_token
     },
-    headers: { "Content-Type": "application/json;charset=UTF-8" },
+    headers: {
+      "Content-Type": "application/json;charset=UTF-8"
+    },
     url: "/api/list/" + Helper.encodeChannelName(chan.toLowerCase()),
-    success: function(response) {
+    success: function (response) {
       response = JSON.parse(response);
       if (response.results.length > 0) {
         if (response.status == 403) {
@@ -569,19 +569,17 @@ function get_list_ajax() {
         List.populate_list(response.results);
       }
     },
-    error: function(response) {
-      //response = JSON.parse(response);
+    error: function (response) {
       if (response.status == 403) {
         start_auth();
       } else if (response.status == 429) {
-        setTimeout(function() {
+        setTimeout(function () {
           get_list_ajax();
         }, xmlhttp.getResponseHeader("Retry-After") * 1000);
       } else if (response.status == 404) return;
       if (client) {
         Helper.removeElement("#channel-load");
       }
-      //List.populate_list(response.responseJSON.results);
     }
   });
 }
@@ -638,14 +636,14 @@ function inIframe() {
 }
 
 function mouseContext(left, top) {
-  var moveFunction = function(event) {
+  var moveFunction = function (event) {
     if (
       event.pageX < left - 60 ||
       event.pageX >
-        left + document.querySelector(".context-menu-root").offsetWidth + 60 ||
+      left + document.querySelector(".context-menu-root").offsetWidth + 60 ||
       event.pageY < top - 60 ||
       event.pageY >
-        top + document.querySelector(".context-menu-root").offsetHeight + 60
+      top + document.querySelector(".context-menu-root").offsetHeight + 60
     ) {
       Helper.addClass(".context-menu-root", "hide");
       Helper.addClass("#context-menu-overlay", "hide");
@@ -659,8 +657,6 @@ function mouseContext(left, top) {
 }
 
 function get_np_ajax() {
-  /*var c = Crypt.get_userpass(chan.toLowerCase());
-    if(c == undefined) c = "";*/
   Helper.ajax({
     type: "POST",
     data: {
@@ -668,19 +664,19 @@ function get_np_ajax() {
       fetch_song: true,
       token: zoff_api_token
     },
-    headers: { "Content-Type": "application/json;charset=UTF-8" },
-    url:
-      "/api/list/" + Helper.encodeChannelName(chan.toLowerCase()) + "/__np__",
-    success: function(response) {
+    headers: {
+      "Content-Type": "application/json;charset=UTF-8"
+    },
+    url: "/api/list/" + Helper.encodeChannelName(chan.toLowerCase()) + "/__np__",
+    success: function (response) {
       response = JSON.parse(response);
       Player.getTitle(response.results[0].title, 1);
     },
-    error: function(response, xmlhttp) {
-      //response = JSON.parse(response);
+    error: function (response, xmlhttp) {
       if (response.status == 403) {
         start_auth();
       } else if (response.status == 429) {
-        setTimeout(function() {
+        setTimeout(function () {
           get_np_ajax();
         }, xmlhttp.getResponseHeader("Retry-After") * 1000);
       }
@@ -689,10 +685,6 @@ function get_np_ajax() {
 }
 
 function del_ajax(id) {
-  /*var a = Crypt.get_pass(chan.toLowerCase());
-    var u = Crypt.get_userpass(chan.toLowerCase());
-    if(a == undefined) a = "";
-    if(u == undefined) u = "";*/
   Helper.ajax({
     type: "DELETE",
     data: {
@@ -700,18 +692,19 @@ function del_ajax(id) {
       userpass: "",
       token: zoff_api_token
     },
-    headers: { "Content-Type": "application/json;charset=UTF-8" },
+    headers: {
+      "Content-Type": "application/json;charset=UTF-8"
+    },
     url: "/api/list/" + Helper.encodeChannelName(chan.toLowerCase()) + "/" + id,
-    success: function(response) {
+    success: function (response) {
       toast("deletesong");
       get_list_ajax();
     },
-    error: function(response, xmlhttp) {
-      //response = JSON.parse(response);
+    error: function (response, xmlhttp) {
       if (response.status == 403) {
         toast("listhaspass");
       } else if (response.status == 429) {
-        setTimeout(function() {
+        setTimeout(function () {
           del_ajax(id);
         }, xmlhttp.getResponseHeader("Retry-After") * 1000);
       }
@@ -731,10 +724,6 @@ function add_ajax(
   source,
   thumbnail
 ) {
-  /*var a = Crypt.get_pass(chan.toLowerCase());
-    var u = Crypt.get_userpass(chan.toLowerCase());
-    if(a == undefined) a = "";
-    if(u == undefined) u = "";*/
   Helper.ajax({
     type: "POST",
     data: {
@@ -748,20 +737,21 @@ function add_ajax(
       source: source,
       token: zoff_api_token
     },
-    headers: { "Content-Type": "application/json;charset=UTF-8" },
+    headers: {
+      "Content-Type": "application/json;charset=UTF-8"
+    },
     url: "/api/list/" + Helper.encodeChannelName(chan.toLowerCase()) + "/" + id,
-    success: function(response) {
+    success: function (response) {
       toast("addedsong");
       get_list_ajax();
     },
-    error: function(response, xmlhttp) {
-      //response = JSON.parse(response);
+    error: function (response, xmlhttp) {
       if (response.status == 403) {
         toast("listhaspass");
       } else if (response.status == 409) {
         vote_ajax(id);
       } else if (response.status == 429) {
-        setTimeout(function() {
+        setTimeout(function () {
           add_ajax(id, title, duration, playlist, num, full_num, start, end);
         }, xmlhttp.getResponseHeader("Retry-After") * 1000);
       }
@@ -770,10 +760,6 @@ function add_ajax(
 }
 
 function vote_ajax(id) {
-  /*var a = Crypt.get_pass(chan.toLowerCase());
-    var u = Crypt.get_userpass(chan.toLowerCase());
-    if(a == undefined) a = "";
-    if(u == undefined) u = "";*/
   Helper.ajax({
     type: "PUT",
     data: {
@@ -781,18 +767,19 @@ function vote_ajax(id) {
       userpass: "",
       token: zoff_api_token
     },
-    headers: { "Content-Type": "application/json;charset=UTF-8" },
+    headers: {
+      "Content-Type": "application/json;charset=UTF-8"
+    },
     url: "/api/list/" + Helper.encodeChannelName(chan.toLowerCase()) + "/" + id,
-    success: function(response) {
+    success: function (response) {
       toast("voted");
       get_list_ajax();
     },
-    error: function(response, xmlhttp) {
-      //response = JSON.parse(response);
+    error: function (response, xmlhttp) {
       if (response.status == 403) {
         toast("listhaspass");
       } else if (response.status == 429) {
-        setTimeout(function() {
+        setTimeout(function () {
           vote_ajax(id);
         }, xmlhttp.getResponseHeader("Retry-After") * 1000);
       }
@@ -801,22 +788,21 @@ function vote_ajax(id) {
 }
 
 function setup_auth_listener() {
-  socket.on("auth_required", function() {
+  socket.on("auth_required", function () {
     start_auth();
   });
 
-  socket.on("auth_accepted", function(msg) {
+  socket.on("auth_accepted", function (msg) {
     if (msg.hasOwnProperty("value") && msg.value) {
       if (temp_user_pass != "") {
         userpass = temp_user_pass;
-        //Crypt.set_userpass(chan.toLowerCase(), userpass);
       }
     }
   });
 }
 
 function setup_no_connection_listener() {
-  socket.on("connect_failed", function() {
+  socket.on("connect_failed", function () {
     Helper.log(["Connection Failed"]);
     if (!connect_error) {
       connect_error = true;
@@ -828,7 +814,7 @@ function setup_no_connection_listener() {
     }
   });
 
-  socket.on("connect_error", function() {
+  socket.on("connect_error", function () {
     Helper.log(["Connection Failed."]);
     if (!connect_error) {
       connect_error = true;
@@ -871,16 +857,14 @@ function loadChromecastVideo() {
     seekTo: _seekTo,
     channel: chan.toLowerCase(),
     source: videoSource,
-    thumbnail:
-      Player.np.thumbnail != undefined
-        ? Player.np.thumbnail
-        : "https://img.youtube.com/vi/" + video_id + "/mqdefault.jpg"
+    thumbnail: Player.np.thumbnail != undefined ?
+      Player.np.thumbnail : "https://img.youtube.com/vi/" + video_id + "/mqdefault.jpg"
   };
   castSession.loadMedia(request).then(
-    function() {
+    function () {
       console.log("Loaded chromecast-video. Don't look here, look at your TV!");
     },
-    function(errorCode) {
+    function (errorCode) {
       console.log("Error code: " + errorCode);
     }
   );
@@ -1027,10 +1011,10 @@ function enable_host_mode(enabled) {
         .insertAdjacentHTML(
           "beforeend",
           "<div id='join-sidebar' style='color:white;'>" +
-            document
-              .querySelector("#channel-share-modal")
-              .querySelector(".modal-content").innerHTML +
-            "</div>"
+          document
+          .querySelector("#channel-share-modal")
+          .querySelector(".modal-content").innerHTML +
+          "</div>"
         );
       document.addEventListener("webkitfullscreenchange", exitHandler, false);
       document.addEventListener("mozfullscreenchange", exitHandler, false);
@@ -1069,19 +1053,16 @@ function enable_host_mode(enabled) {
 }
 
 function get_list_listener() {
-  socket.on("get_list", function() {
+  socket.on("get_list", function () {
     var add = "";
     socket_connected = true;
-    //if(private_channel) add = Crypt.getCookie("_uI") + "_";
-    /*var p = Crypt.crypt_pass(Crypt.get_userpass(chan.toLowerCase()), true);
-        if(p == undefined) p = "";*/
     socket.emit("list", {
       offline: offline,
-      version: parseInt(_VERSION),
+      version: VERSION,
       channel: add + chan.toLowerCase()
     });
   });
-  socket.on("id_chromecast", function(msg) {
+  socket.on("id_chromecast", function (msg) {
     chromecast_specs_sent = true;
     castSession.sendMessage("urn:x-cast:zoff.me", {
       type: "mobilespecs",
@@ -1094,7 +1075,7 @@ function get_list_listener() {
 
 function setup_suggested_listener() {
   if (client) return;
-  socket.on("suggested", function(params) {
+  socket.on("suggested", function (params) {
     var single = true;
     if (params.id === undefined) single = false;
     Suggestions.catchUserSuggests(params, single);
@@ -1102,9 +1083,9 @@ function setup_suggested_listener() {
 }
 
 function setup_viewers_listener() {
-  socket.on("viewers", function(view) {
+  socket.on("viewers", function (view) {
     viewers = view;
-    var outPutWord = "<i class='material-icons'>visibility</i>"; //v > 1 ? "viewers" : "viewer";
+    var outPutWord = "<i class='material-icons'>visibility</i>";
 
     Helper.setHtml("#viewers", outPutWord + " " + view);
 
@@ -1119,7 +1100,7 @@ function setup_admin_listener() {
 }
 
 function setup_chat_listener() {
-  socket.on("chat_history", function(msg) {
+  socket.on("chat_history", function (msg) {
     var data = msg.data;
     for (var i = 0; i < data.length; i++) {
       if (msg.all) {
@@ -1225,23 +1206,23 @@ function change_offline(enabled, already_offline) {
     }
   }
 
-  var mouseEnter = function(e) {
+  var mouseEnter = function (e) {
     Helper.removeClass("#seekToDuration", "hide");
   };
 
-  var mouseLeave = function(e) {
+  var mouseLeave = function (e) {
     dragging = false;
     Helper.addClass("#seekToDuration", "hide");
   };
 
-  var mouseDown = function(e) {
+  var mouseDown = function (e) {
     var acceptable = ["bar", "controls", "duration"];
     if (acceptable.indexOf(e.target.id) >= 0) {
       dragging = true;
     }
   };
 
-  var mouseUp = function(e) {
+  var mouseUp = function (e) {
     dragging = false;
   };
 
@@ -1348,7 +1329,9 @@ function change_offline(enabled, already_offline) {
         .removeEventListener("click", seekToClick);
       Helper.removeElement("#seekToDuration");
       socket.on("color", Player.setBGimage);
-      socket.emit("pos", { channel: chan.toLowerCase() });
+      socket.emit("pos", {
+        channel: chan.toLowerCase()
+      });
       var add = "";
       socket.emit("list", {
         version: parseInt(_VERSION),
@@ -1481,7 +1464,7 @@ function resizePlaylistPlaying(playing, resizing) {
           Helper.computedStyle("header", "height") -
           64 -
           40) /
-          71
+        71
       );
       List.element_height =
         (window.innerHeight -
@@ -1489,7 +1472,7 @@ function resizePlaylistPlaying(playing, resizing) {
           Helper.computedStyle("header", "height") -
           64 -
           40) /
-          temp_fit -
+        temp_fit -
         5;
     }
 
@@ -1510,7 +1493,6 @@ function resizePlaylistPlaying(playing, resizing) {
         );
       }
     } else if (List.can_fit > temp_fit) {
-      //Helper.css(document.querySelector("#wrapper").children, "display", "none");
       Helper.css(
         document.querySelector("#wrapper").children[List.page + temp_fit],
         "display",
@@ -1676,8 +1658,7 @@ function toast(msg, _class) {
       if (embed) return;
       if (Search.submitYouTubeError) {
         M.toast({
-          html:
-            "Added most of your playlist, but something was wrong. Check the playlist..",
+          html: "Added most of your playlist, but something was wrong. Check the playlist..",
           displayLength: 4000,
           classes: "red lighten connect_error"
         });
@@ -1714,7 +1695,6 @@ function toast(msg, _class) {
         "Nope, wrong password!",
         "Wrong password. The authorities have been notified."
       ]);
-      //Crypt.remove_pass(chan.toLowerCase());
       Admin.display_logged_out();
       Helper.css("#thumbnail_form", "display", "none");
       Helper.css("#description_form", "display", "none");
@@ -1804,7 +1784,6 @@ function toast(msg, _class) {
         "I can't let you do that",
         "Please log in to do that"
       ]);
-      //Crypt.remove_pass(chan.toLowerCase());
       Admin.display_logged_out();
       Helper.css("#thumbnail_form", "display", "none");
       Helper.css("#description_form", "display", "none");
@@ -1851,9 +1830,9 @@ function toast(msg, _class) {
       if (embed) return;
       tried_again = false;
       adminpass =
-        Crypt.get_pass(chan.toLowerCase()) == undefined
-          ? Crypt.tmp_pass
-          : Crypt.get_pass(chan.toLowerCase());
+        Crypt.get_pass(chan.toLowerCase()) == undefined ?
+        Crypt.tmp_pass :
+        Crypt.get_pass(chan.toLowerCase());
       msg =
         "Correct password. You now have access to the sacred realm of The Admin.";
       Helper.css("#thumbnail_form", "display", "inline-block");
@@ -1875,7 +1854,11 @@ function toast(msg, _class) {
   }
   before_toast();
   var classes = _class == undefined ? "" : _class;
-  M.toast({ html: msg, displayLength: 4000, classes: classes });
+  M.toast({
+    html: msg,
+    displayLength: 4000,
+    classes: classes
+  });
 }
 
 function emit() {
@@ -1955,20 +1938,11 @@ function searchTimeout(event) {
     code != 27
   ) {
     clearTimeout(timeout_search);
-    /*if(search_input.length < 3){
-        Helper.css(".results-tabs", "display", "none");
-        document.querySelector("#results").innerHTML = "";
-        document.querySelector("#results_soundcloud").innerHTML = "";
-        Helper.css("")
-        if(search_input.length == 0) {
-        document.querySelector("body").setAttribute("style", "overflow-y: auto");
-    }
-}*/
     if (code == 13) {
       Search.search(search_input);
       Search.soundcloudSearch(search_input);
     } else {
-      timeout_search = setTimeout(function() {
+      timeout_search = setTimeout(function () {
         Search.search(search_input);
         Search.soundcloudSearch(search_input);
       }, 1000);

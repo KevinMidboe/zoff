@@ -1,9 +1,13 @@
+import {
+  VERSION
+} from "../../../VERSION";
+
 var Hostcontroller = {
   enabled: true,
 
   old_id: null,
 
-  host_listener: function(id) {
+  host_listener: function (id) {
     if (client) return;
     Helper.log(["Host-listener triggered", "Host-listener id:" + id]);
     if (Hostcontroller.old_id === null) Hostcontroller.old_id = id;
@@ -16,8 +20,10 @@ var Hostcontroller = {
       window.location.protocol + "//remote." + window.location.host + "/" + id;
     if (embed) {
       if (window.parentWindow && window.parentOrigin) {
-        window.parentWindow.postMessage(
-          { type: "controller", id: id },
+        window.parentWindow.postMessage({
+            type: "controller",
+            id: id
+          },
           window.parentOrigin
         );
       }
@@ -29,7 +35,7 @@ var Hostcontroller = {
         .setAttribute(
           "src",
           "https://chart.googleapis.com/chart?chs=221x221&cht=qr&choe=UTF-8&chld=L|1&chl=" +
-            codeURL
+          codeURL
         );
       document.querySelector("#code-link").setAttribute("href", codeURL);
     }
@@ -39,7 +45,7 @@ var Hostcontroller = {
     }
   },
 
-  host_on_action: function(arr) {
+  host_on_action: function (arr) {
     if (client) return;
     if (Hostcontroller.enabled) {
       if (arr.type == "volume") {
@@ -71,20 +77,19 @@ var Hostcontroller = {
           .setAttribute(
             "src",
             "https://chart.googleapis.com/chart?chs=221x221&cht=qr&choe=UTF-8&chld=L|1&chl=" +
-              shareCodeUrl
+            shareCodeUrl
           );
         Helper.setHtml(
           "#channel-name-join",
           "client." +
-            window.location.hostname +
-            "/" +
-            encodeURIComponent(chan.toLowerCase())
+          window.location.hostname +
+          "/" +
+          encodeURIComponent(chan.toLowerCase())
         );
         w_p = true;
         var add = "";
-        //if(private_channel) add = Crypt.getCookie("_uI") + "_";
         socket.emit("list", {
-          version: parseInt(_VERSION),
+          version: parseInt(VERSION),
           channel: add + chan.toLowerCase()
         });
 
@@ -103,7 +108,7 @@ var Hostcontroller = {
     }
   },
 
-  change_enabled: function(val) {
+  change_enabled: function (val) {
     if (client) return;
     Hostcontroller.enabled = val;
     try {
