@@ -9,7 +9,7 @@ Vue.use(VueRouter)
 
 new Vue({
   el: '#app',
-  router,
+  // router,
   // store,
   components: { App },
   // template: '<App />',
