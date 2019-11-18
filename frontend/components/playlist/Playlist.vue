@@ -12,14 +12,13 @@
         :duration="song.duration"
         @contextmenu="moreInfo"
       />
-      <div class="song-context-button" @click="moreInfo($event, song.id)">. . .</div>
     </div>
     <div class="pagination-buttons">
-      <button @click="firstPage" :disabled="disabledPrev" class="first"><</button>
-      <button @click="prevPage" :disabled="disabledPrev">previous</button>
+      <v-btn text @click="firstPage" :disabled="disabledPrev" class="first"><</v-btn>
+      <v-btn text @click="prevPage" :disabled="disabledPrev">previous</v-btn>
       <span>{{ page + 1 }} / {{ pages }}</span>
-      <button @click="nextPage" :disabled="disabledNext">next</button>
-      <button @click="lastPage" :disabled="disabledNext" class="last">></button>
+      <v-btn text @click="nextPage" :disabled="disabledNext">next</v-btn>
+      <v-btn text @click="lastPage" :disabled="disabledNext" class="last">></v-btn>
     </div>
     <ContextMenu
       v-if="contextMenuOpen"
@@ -121,36 +120,8 @@ export default {
 .playlist-conatiner {
   background-color: #2d2d2d;
   padding-top: 5px;
-
-  & .playlist-element {
-    display: flex;
-    flex-direction: row;
-    box-shadow: 0px 0px 2px #000000;
-    border-radius: 5px;
-    background: #2d2d2d;
-    color: white;
-    margin: 5px 5px;
-    cursor: pointer;
-
-    &:hover {
-      box-shadow: 0px 0px 3px #000000;
-    }
-
-    &:active {
-      background: #000000;
-    }
-
-    & .song {
-      width: 90%;
-    }
-    & .song-context-button {
-      width: 10%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-left: 1px solid black;
-    }
-  }
+  margin:auto;
+  width: 100%;
 
   .pagination-buttons {
     display: flex;

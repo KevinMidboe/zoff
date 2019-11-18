@@ -29,7 +29,7 @@ const webpackConfig = function(isDev) {
           loader: "babel-loader",
           include: [helpers.root("frontend")]
         },
-        {
+        /*{
           test: /\.css$/,
           use: [
             isDev ? "vue-style-loader" : MiniCSSExtractPlugin.loader,
@@ -51,7 +51,31 @@ const webpackConfig = function(isDev) {
             { loader: "css-loader", options: { sourceMap: isDev } },
             { loader: "sass-loader", options: { sourceMap: isDev } }
           ]
-        }
+        },*/
+        {
+          test: /\.s(c|a)ss$/,
+          use: [
+            'vue-style-loader',
+            'css-loader',
+            {
+              loader: 'sass-loader',
+              // Requires sass-loader@^7.0.0
+              options: {
+                implementation: require('sass'),
+                fiber: require('fibers'),
+                indentedSyntax: true // optional
+              },
+              // Requires sass-loader@^8.0.0
+              options: {
+                implementation: require('sass'),
+                sassOptions: {
+                  fiber: require('fibers'),
+                  indentedSyntax: true // optional
+                },
+              },
+            },
+          ],
+        },
       ]
     },
     plugins: [new VueLoaderPlugin()]

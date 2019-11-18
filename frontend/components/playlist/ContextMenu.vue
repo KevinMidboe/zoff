@@ -65,7 +65,6 @@ export default {
 
 <style scoped lang="scss">
 .context-menu-background {
-  background: #000000a0;
   width: 500px;
   height: 500px;
   position: absolute;

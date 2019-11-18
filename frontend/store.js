@@ -10,3 +10,5 @@ const store = new Vuex.Store({
     playerModule
   }
 })
+
+export default store;

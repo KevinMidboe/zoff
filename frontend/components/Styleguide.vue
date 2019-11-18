@@ -1,15 +1,15 @@
 <template>
-  <div>
+  <v-app>
     <h1>Styleguide</h1>
-    <div class="row">
+    <div>
       <h2>Chat</h2>
       <Chat />
     </div>
-    <div class="row">
+    <div>
       <h2>Playlist-element</h2>
       <Playlist />
     </div>
-  </div>
+  </v-app>
 </template>
 
 
