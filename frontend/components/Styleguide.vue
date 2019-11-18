@@ -27,4 +27,7 @@ export default {
 
 
 <style lang="scss" scoped>
+div {
+  background: #2d2d2d;
+}
 </style>

@@ -33,13 +33,14 @@
 </template>
 
 <script>
+import store from "@/store";
 import Song from "@/components/playlist/Song";
 import ContextMenu from "@/components/playlist/ContextMenu";
 
 export default {
   components: {
     Song,
-    ContextMenu
+    ContextMenu,
   },
   computed: {
     paginatedList: function() {
@@ -56,21 +57,9 @@ export default {
     },
     pages: function() {
       return Math.ceil(this.playlist.length / this.perPage);
-    }
-  },
-  async beforeMount() {
-    try {
-      const request = await fetch("https://zoff.me/api/list/summér", {
-        method: "POST"
-      });
-      const playlist = await request.json();
-      if (this.playlist.error == true) {
-        console.error(this.playlist.error);
-        return;
-      }
-      this.playlist = playlist.results;
-    } catch (e) {
-      alert("TIMEOUT");
+    },
+    playlist: function() {
+      return store.getters["playerModule/playlist"];
     }
   },
   methods: {
@@ -110,7 +99,6 @@ export default {
       contextOnElement: {},
       page: 0,
       perPage: 10,
-      playlist: []
     };
   }
 };
@@ -118,10 +106,19 @@ export default {
 
 <style scoped lang="scss">
 .playlist-conatiner {
-  background-color: #2d2d2d;
+  background-color: inherit;
   padding-top: 5px;
   margin:auto;
   width: 100%;
+  background: #2d2d2d;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  
+
+  & .playlist-element {
+    height: 100%;;
+  }
 
   .pagination-buttons {
     display: flex;

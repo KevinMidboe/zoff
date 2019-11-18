@@ -6,8 +6,8 @@
   >
     <v-img class="white--text align-end song-image" :src="thumbnail"></v-img>
 
-    <v-card-text class="text--primary text-truncate text-no-wrap song-title">
-      <div class="text-truncate-inner">{{ title }}</div>
+    <v-card-text class="white--text text-truncate text-no-wrap song-title">
+      <div class="white--text text-truncate-inner">{{ title }}</div>
 
       <div>{{ votes }} vote{{votes > 1 || votes == 0 ? "s" : null }}</div>
     </v-card-text>
@@ -92,11 +92,14 @@ export default {
   display: flex;
   flex-direction: row;
   box-shadow: 0px 0px 2px #000000;
+  background: #FFFFFF20;
   border-radius: 5px;
   margin: 5px 5px;
   cursor: pointer;
   margin-left: 8px;
   width: calc(100% - 16px);
+  color: white;
+  height: auto;
 
   & .song-context-button {
     width: 10%;
@@ -120,6 +123,7 @@ export default {
   flex-direction: column;
   justify-content: space-around;
   border-top-right-radius: 0;
+  color: white !important;
   border-bottom-right-radius: 0 !important;
 }
 

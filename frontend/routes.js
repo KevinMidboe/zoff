@@ -7,12 +7,18 @@ let routes = [
   {
     name: 'player',
     path: '/player',
-    component: (resolve) => require(['./components/Player.vue'], resolve)
+    component: (resolve) => require(['./components/player/Player.vue'], resolve)
   },
   {
     name: 'styleguide',
     path: '/styleguide',
     component: (resolve) => require(['./components/Styleguide.vue'], resolve)
+  },
+
+  {
+    name: 'playlist',
+    path: '/playlist',
+    component: (resolve) => require(['./components/playlist/Playlist.vue'], resolve)
   },
   // {
   //   name: '404',

@@ -3,12 +3,14 @@ import VueRouter from 'vue-router'
 import vuetify from '@/plugins/vuetify' // path to vuetify export
 import router from './routes'
 import store from './store'
+import Socket from '@/mixins/Socket';
 
 import App from './App.vue'
 
 Vue.use(VueRouter)
 
 new Vue({
+  mixins:[Socket],
   vuetify,
   el: '#app',
   router,
