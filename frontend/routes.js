@@ -1,25 +1,31 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router';
+import Vue from "vue";
+import VueRouter from "vue-router";
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 let routes = [
   {
-    name: 'player',
-    path: '/player',
-    component: (resolve) => require(['./components/player/Player.vue'], resolve)
+    name: "player",
+    path: "/player",
+    component: resolve => require(["./components/player/Player.vue"], resolve)
   },
   {
-    name: 'styleguide',
-    path: '/styleguide',
-    component: (resolve) => require(['./components/Styleguide.vue'], resolve)
+    name: "styleguide",
+    path: "/styleguide",
+    component: resolve => require(["./components/Styleguide.vue"], resolve)
   },
 
   {
-    name: 'playlist',
-    path: '/playlist',
-    component: (resolve) => require(['./components/playlist/Playlist.vue'], resolve)
+    name: "playlist",
+    path: "/playlist",
+    component: resolve =>
+      require(["./components/playlist/Playlist.vue"], resolve)
   },
+  {
+    name: "channel",
+    path: "/channel",
+    component: resolve => require(["./components/Channel.vue"], resolve)
+  }
   // {
   //   name: '404',
   //   path: '/404',
@@ -27,11 +33,11 @@ let routes = [
   // }
 ];
 
-const router =  new VueRouter({
-  mode: 'hash',
-  base: '/',
+const router = new VueRouter({
+  mode: "hash",
+  base: "/",
   routes,
-  linkActiveClass: 'is-active'
+  linkActiveClass: "is-active"
 });
 
 export default router;

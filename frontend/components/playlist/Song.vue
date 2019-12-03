@@ -75,6 +75,8 @@ export default {
       if (e.target.className === "more-info-button") {
         return;
       }
+
+      this.$root.$options.methods.vote(this.id);
       console.log("Clicked on song with info", this.title, this.id);
     }
   }
@@ -92,7 +94,7 @@ export default {
   display: flex;
   flex-direction: row;
   box-shadow: 0px 0px 2px #000000;
-  background: #FFFFFF20;
+  background: #ffffff20;
   border-radius: 5px;
   margin: 5px 5px;
   cursor: pointer;

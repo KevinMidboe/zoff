@@ -1,4 +1,3 @@
-
 export default {
   namespaced: true,
   state: {
@@ -18,15 +17,11 @@ export default {
       PLAYING: 1,
       UNSTARTED: -1
     },
-    socket: null,
     channel: "summér"
   },
   getters: {
     channel: state => {
       return state.channel;
-    },
-    socket: state => {
-      return state.socket
     },
     PLAYER_STATES: state => {
       return state.PLAYER_STATES;

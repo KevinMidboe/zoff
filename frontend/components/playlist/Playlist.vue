@@ -16,7 +16,7 @@
     <div class="pagination-buttons">
       <v-btn text @click="firstPage" :disabled="disabledPrev" class="first"><</v-btn>
       <v-btn text @click="prevPage" :disabled="disabledPrev">previous</v-btn>
-      <span>{{ page + 1 }} / {{ pages }}</span>
+      <span>{{ page + 1 }}&nbsp;/&nbsp;{{ pages }}</span>
       <v-btn text @click="nextPage" :disabled="disabledNext">next</v-btn>
       <v-btn text @click="lastPage" :disabled="disabledNext" class="last">></v-btn>
     </div>
@@ -40,14 +40,13 @@ import ContextMenu from "@/components/playlist/ContextMenu";
 export default {
   components: {
     Song,
-    ContextMenu,
+    ContextMenu
   },
   computed: {
     paginatedList: function() {
-      return this.playlist.slice(
-        this.page * this.perPage,
-        (1 + this.page) * this.perPage
-      );
+      return this.playlist
+        .filter(song => !song.now_playing)
+        .slice(this.page * this.perPage, (1 + this.page) * this.perPage);
     },
     disabledPrev: function() {
       return this.page == 0;
@@ -98,7 +97,7 @@ export default {
       contextMenuOpen: false,
       contextOnElement: {},
       page: 0,
-      perPage: 10,
+      perPage: 12
     };
   }
 };
@@ -108,23 +107,28 @@ export default {
 .playlist-conatiner {
   background-color: inherit;
   padding-top: 5px;
-  margin:auto;
+  margin: auto;
   width: 100%;
   background: #2d2d2d;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  
+  position: relative;
 
-  & .playlist-element {
-    height: 100%;;
-  }
+  // & .playlist-element {
+  //   height: 100%;
+  // }
 
   .pagination-buttons {
     display: flex;
     justify-content: space-between;
     color: white;
     padding: 10px 0;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    margin: auto;
 
     & span {
       display: flex;
@@ -133,7 +137,7 @@ export default {
     }
 
     & button {
-      width: 35%;
+      width: 20%;
       height: 30px;
       background: transparent;
       color: white;

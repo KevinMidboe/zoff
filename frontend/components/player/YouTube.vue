@@ -12,7 +12,9 @@ export default {
       player: null,
       playerReady: false,
       currentPlaying: {},
-      currentIsThis: false
+      currentIsThis: false,
+      gettingPosition: false,
+      wasPaused: false
     };
   },
   computed: {
@@ -56,8 +58,10 @@ export default {
       if (this.player == null) {
         this.createYoutubeObjectWithId(this.nowPlaying.id);
       } else {
+        console.log("new np", this.currentPlaying.id, nowPlaying.id);
         if (this.currentPlaying.id != nowPlaying.id) {
           try {
+            console.log("loading");
             this.player.loadVideoById(nowPlaying.id, {
               start: nowPlaying.seek,
               end: nowPlaying.end
@@ -65,6 +69,7 @@ export default {
           } catch (e) {}
         } else {
           this.player.seekTo(nowPlaying.seek);
+          console.log("seeking");
         }
         this.currentPlaying = nowPlaying;
       }
@@ -128,7 +133,14 @@ export default {
     },
     onPlayerReady(event) {
       console.log("event from onPlayerReady", event);
+
+      this.player.setVolume(0);
       event.target.playVideo();
+      setInterval(() => {
+        console.log(
+          this.player.getCurrentTime() + " - " + this.player.getDuration()
+        );
+      }, 1000);
     },
     checkForInitialLoadAndSeek() {
       if (!this.initialLoad) {
@@ -142,6 +154,10 @@ export default {
       if (event.data === this.PLAYER_STATES.PLAYING) {
         console.log("playing");
         this.checkForInitialLoadAndSeek();
+        if (this.wasPaused) {
+          this.wasPaused = false;
+          this.$root.$options.methods.getPosition();
+        }
       } else if (event.data === this.PLAYER_STATES.ENDED) {
         console.log("ended");
         this.$root.$options.methods.songEnd();
@@ -149,6 +165,9 @@ export default {
         console.log("not started");
       } else if (event.data === this.PLAYER_STATES.BUFFERING) {
         console.log("buffering");
+      } else if (event.data === this.PLAYER_STATES.PAUSED) {
+        console.log("pasued");
+        this.wasPaused = true;
       }
     },
     errorHandler(error) {
@@ -159,8 +178,8 @@ export default {
 </script>
 
 <style lang="scss">
-#player {
-  width: 100vw !important;
-  height: 60vh;
+#youtubePlayer {
+  width: 100% !important;
+  height: 100%;
 }
 </style>

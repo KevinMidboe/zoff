@@ -1,6 +1,5 @@
 <template>
   <div class="conatiner">
-    <h1>Player</h1>
     <YouTube
       @end="end('youtube')"
       @pause="pause('youtube')"
@@ -17,7 +16,7 @@ import YouTube from "@/components/player/YouTube";
 
 export default {
   components: {
-    YouTube,
+    YouTube
   },
   data() {
     return {
