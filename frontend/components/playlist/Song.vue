@@ -7,7 +7,7 @@
     <v-img class="white--text align-end song-image" :src="thumbnail"></v-img>
 
     <v-card-text class="white--text text-truncate text-no-wrap song-title">
-      <div class="white--text text-truncate-inner">{{ title }}</div>
+      <div class="white--text text-truncate text-no-wrap text-truncate-inner">{{ title }}</div>
 
       <div>{{ votes }} vote{{votes > 1 || votes == 0 ? "s" : null }}</div>
     </v-card-text>
@@ -85,7 +85,8 @@ export default {
 
 <style scoped lang="scss">
 .song-image {
-  width: 25%;
+  width: 120px;
+  height: 90px;
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
   border-bottom-left-radius: 2.5px !important;

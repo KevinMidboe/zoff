@@ -14,11 +14,15 @@
       />
     </div>
     <div class="pagination-buttons">
-      <v-btn text @click="firstPage" :disabled="disabledPrev" class="first"><</v-btn>
+      <v-btn text @click="firstPage" :disabled="disabledPrev" class="first"
+        ><</v-btn
+      >
       <v-btn text @click="prevPage" :disabled="disabledPrev">previous</v-btn>
       <span>{{ page + 1 }}&nbsp;/&nbsp;{{ pages }}</span>
       <v-btn text @click="nextPage" :disabled="disabledNext">next</v-btn>
-      <v-btn text @click="lastPage" :disabled="disabledNext" class="last">></v-btn>
+      <v-btn text @click="lastPage" :disabled="disabledNext" class="last"
+        >></v-btn
+      >
     </div>
     <ContextMenu
       v-if="contextMenuOpen"
@@ -61,7 +65,48 @@ export default {
       return store.getters["playerModule/playlist"];
     }
   },
+  mounted() {
+    console.log(this.$socket);
+    this.sockets.subscribe("channel", msg => {
+      console.log("list", msg);
+      if (msg.type == "list") {
+        this.gotList(msg);
+      } else if (msg.type == "vote") {
+        this.voted(msg);
+      } else if (msg.type == "shuffle") {
+        this.gotList(msg);
+      }
+    });
+  },
   methods: {
+    gotList: function(msg) {
+      console.log(this);
+      msg.playlist.sort(
+        this.predicate(
+          {
+            name: "votes",
+            reverse: true
+          },
+          {
+            name: "added",
+            reverse: false
+          },
+          {
+            name: "title",
+            reverse: false
+          }
+        )
+      );
+      store.dispatch("playerModule/setPlaylist", msg.playlist);
+    },
+    voted: function(msg) {
+      const playlist = store.getters["playerModule/playlist"];
+      let songToUpdate = playlist.find(song => song.id == msg.value);
+      console.log(songToUpdate);
+      songToUpdate.votes += 1;
+      songToUpdate.added = msg.time;
+      store.dispatch("playerModule/setPlaylist", playlist);
+    },
     moreInfo: function(e, id) {
       e.preventDefault();
       this.contextOnElement = this.playlist.find(song => song.id == id);
